@@ -18,7 +18,6 @@
  */
 
 #include "common.h"
-#include <SDL/SDL_image.h>
 
 struct StringCut {
 	uint32_t Start;  // Starting character index of the cut, inclusive.
@@ -67,7 +66,6 @@ void init_video()
 	}
 
 	SDL_ShowCursor(SDL_DISABLE);
-	// OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE);
 	RS97Surface = SDL_SetVideoMode(320, 480, 16, SDL_HWSURFACE);
 	OutputSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16,
 	  GBA_RED_MASK,
@@ -85,54 +83,64 @@ void init_video()
 
 void SetMenuResolution()
 {
-// #ifdef GCW_ZERO
-// 	if (SDL_MUSTLOCK(OutputSurface))
-// 		SDL_UnlockSurface(OutputSurface);
-// 	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE );
-// 	if (SDL_MUSTLOCK(OutputSurface))
-// 		SDL_LockSurface(OutputSurface);
-// #endif
+#ifdef GCW_ZERO
+	if (SDL_MUSTLOCK(OutputSurface))
+		SDL_UnlockSurface(OutputSurface);
+	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE | SDL_DOUBLEBUF);
+	if (SDL_MUSTLOCK(OutputSurface))
+		SDL_LockSurface(OutputSurface);
+#endif
 }
 
 void SetGameResolution()
 {
-// #ifdef GCW_ZERO
-// 	video_scale_type ResolvedScaleMode = ResolveSetting(ScaleMode, PerGameScaleMode);
-// 	unsigned int Width = GBA_SCREEN_WIDTH, Height = GBA_SCREEN_HEIGHT;
-// 	if (ResolvedScaleMode != hardware)
-// 	{
-// 		Width = GCW0_SCREEN_WIDTH;
-// 		Height = GCW0_SCREEN_HEIGHT;
-// 	}
-// 	if (SDL_MUSTLOCK(OutputSurface))
-// 		SDL_UnlockSurface(OutputSurface);
-// 	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE);
-// 	if (SDL_MUSTLOCK(OutputSurface))
-// 		SDL_LockSurface(OutputSurface);
-// #endif
+#ifdef GCW_ZERO
+	video_scale_type ResolvedScaleMode = ResolveSetting(ScaleMode, PerGameScaleMode);
+	unsigned int Width = GBA_SCREEN_WIDTH, Height = GBA_SCREEN_HEIGHT;
+	if (ResolvedScaleMode != hardware)
+	{
+		Width = GCW0_SCREEN_WIDTH;
+		Height = GCW0_SCREEN_HEIGHT;
+	}
+	if (SDL_MUSTLOCK(OutputSurface))
+		SDL_UnlockSurface(OutputSurface);
+	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE |
+#ifdef SDL_TRIPLEBUF
+		SDL_TRIPLEBUF
+#else
+		SDL_DOUBLEBUF
+#endif
+		);
+	if (SDL_MUSTLOCK(OutputSurface))
+		SDL_LockSurface(OutputSurface);
+#endif
 }
 
-/* We'll just use SoftStretch and DisplayFormat for borders rather than imageio.c 
- * Only downside is a dependency on SDL_image.
- * */
 bool ApplyBorder(const char* Filename)
 {
-	SDL_Surface *conv, *tmp; 
-	tmp = IMG_Load(Filename);
-	/* I forgot to put that check...*/
-	if (!tmp) return false;
-	
-	conv = SDL_DisplayFormat(tmp);
-	
-	/* Clear temporary image file once we converted it */
-	if (tmp) SDL_FreeSurface(tmp);
-	
-	BorderSurface = SDL_CreateRGBSurface(SDL_HWSURFACE, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, 0, 0, 0, 0);
-	SDL_SoftStretch(conv, NULL, BorderSurface, NULL);
-	
-	if (conv) SDL_FreeSurface(conv);
-	
-	return true;
+	SDL_Surface* JustLoaded = loadPNG(Filename, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT);
+	bool Result = false;
+	if (JustLoaded != NULL)
+	{
+		if (JustLoaded->w == GCW0_SCREEN_WIDTH && JustLoaded->h == GCW0_SCREEN_HEIGHT)
+		{
+			if (BorderSurface != NULL)
+			{
+				SDL_FreeSurface(BorderSurface);
+				BorderSurface = NULL;
+			}
+			BorderSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16,
+			  OutputSurface->format->Rmask,
+			  OutputSurface->format->Gmask,
+			  OutputSurface->format->Bmask,
+			  OutputSurface->format->Amask);
+			SDL_BlitSurface(JustLoaded, NULL, BorderSurface, NULL);
+			Result = true;
+		}
+		SDL_FreeSurface(JustLoaded);
+		JustLoaded = NULL;
+	}
+	return Result;
 }
 
 /***************************************************************************
@@ -329,7 +337,7 @@ static inline void gba_upscale(uint16_t *to, uint16_t *from,
 
 				// Generate abgh_ag from b_a and h_g.
 				uint32_t bh_ag = Average32(b_a, h_g);
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 2)) = likely(Hi(bh_ag) == Lo(bh_ag))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch) = likely(Hi(bh_ag) == Lo(bh_ag))
 					? bh_ag
 					: Lo(bh_ag) /* ag verbatim to low pixel */ |
 					  Raise(Average(Hi(bh_ag), Lo(bh_ag))) /* abgh to high pixel */;
@@ -338,14 +346,14 @@ static inline void gba_upscale(uint16_t *to, uint16_t *from,
 				uint32_t ci_bh =
 					Hi(bh_ag) /* bh verbatim to low pixel */ |
 					Raise(Average(Lo(d_c), Lo(j_i))) /* ci to high pixel */;
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 2) + 4) = likely(Hi(ci_bh) == Lo(ci_bh))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 4) = likely(Hi(ci_bh) == Lo(ci_bh))
 					? ci_bh
 					: Raise(Hi(ci_bh)) /* ci verbatim to high pixel */ |
 					  Average(Hi(ci_bh), Lo(ci_bh)) /* bchi to low pixel */;
 
 				// Generate fl_efkl from f_e and l_k.
 				uint32_t fl_ek = Average32(f_e, l_k);
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 2) + 12) = likely(Hi(fl_ek) == Lo(fl_ek))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 12) = likely(Hi(fl_ek) == Lo(fl_ek))
 					? fl_ek
 					: Raise(Hi(fl_ek)) /* fl verbatim to high pixel */ |
 					  Average(Hi(fl_ek), Lo(fl_ek)) /* efkl to low pixel */;
@@ -354,32 +362,32 @@ static inline void gba_upscale(uint16_t *to, uint16_t *from,
 				uint32_t ek_dj =
 					Raise(Lo(fl_ek)) /* ek verbatim to high pixel */ |
 					Average(Hi(d_c), Hi(j_i)) /* dj to low pixel */;
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 2) + 8) = likely(Hi(ek_dj) == Lo(ek_dj))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 8) = likely(Hi(ek_dj) == Lo(ek_dj))
 					? ek_dj
 					: Lo(ek_dj) /* dj verbatim to low pixel */ |
 					  Raise(Average(Hi(ek_dj), Lo(ek_dj))) /* dejk to high pixel */;
 
 				// -- Row 3 --
 				// Generate gh_g from h_g.
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 4)) = likely(Hi(h_g) == Lo(h_g))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2) = likely(Hi(h_g) == Lo(h_g))
 					? h_g
 					: Lo(h_g) /* 'g' verbatim to low pixel */ |
 					  Raise(Average(Hi(h_g), Lo(h_g))) /* gh to high pixel */;
 
 				// Generate i_hi from g_h and j_i.
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 4) + 4) = likely(Hi(h_g) == Lo(j_i))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = likely(Hi(h_g) == Lo(j_i))
 					? Lo(j_i) | Raise(Lo(j_i))
 					: Raise(Lo(j_i)) /* 'i' verbatim to high pixel */ |
 					  Average(Lo(j_i), Hi(h_g)) /* hi to low pixel */;
 
 				// Generate jk_j from j_i and l_k.
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 4) + 8) = likely(Hi(j_i) == Lo(l_k))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 8) = likely(Hi(j_i) == Lo(l_k))
 					? Lo(l_k) | Raise(Lo(l_k))
 					: Hi(j_i) /* 'j' verbatim to low pixel */ |
 					  Raise(Average(Hi(j_i), Lo(l_k))) /* jk to high pixel */;
 
 				// Generate l_kl from l_k.
-				*(uint32_t*) ((uint8_t*) to + (dst_pitch * 4) + 12) = likely(Hi(l_k) == Lo(l_k))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 12) = likely(Hi(l_k) == Lo(l_k))
 					? l_k
 					: Raise(Hi(l_k)) /* 'l' verbatim to high pixel */ |
 					  Average(Hi(l_k), Lo(l_k)) /* kl to low pixel */;
@@ -392,7 +400,7 @@ static inline void gba_upscale(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 1 whole lines of source and 2 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip +     src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 5 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 2 * dst_pitch);
 	}
 }
 
@@ -475,7 +483,7 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 
 				// Generate abgh_ag from b_a and h_g.
 				uint32_t bh_ag = Average32(b_a, h_g);
-				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2) = likely(Hi(bh_ag) == Lo(bh_ag))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch) = likely(Hi(bh_ag) == Lo(bh_ag))
 					? bh_ag
 					: Lo(bh_ag) /* ag verbatim to low pixel */ |
 					  Raise(Average(Hi(bh_ag), Lo(bh_ag))) /* abgh to high pixel */;
@@ -484,14 +492,14 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 				uint32_t ci_bh =
 					Hi(bh_ag) /* bh verbatim to low pixel */ |
 					Raise(Average(Lo(d_c), Lo(j_i))) /* ci to high pixel */;
-				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = likely(Hi(ci_bh) == Lo(ci_bh))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 4) = likely(Hi(ci_bh) == Lo(ci_bh))
 					? ci_bh
 					: Raise(Hi(ci_bh)) /* ci verbatim to high pixel */ |
 					  Average(Hi(ci_bh), Lo(ci_bh)) /* bchi to low pixel */;
 
 				// Generate fl_efkl from f_e and l_k.
 				uint32_t fl_ek = Average32(f_e, l_k);
-				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 12) = likely(Hi(fl_ek) == Lo(fl_ek))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 12) = likely(Hi(fl_ek) == Lo(fl_ek))
 					? fl_ek
 					: Raise(Hi(fl_ek)) /* fl verbatim to high pixel */ |
 					  Average(Hi(fl_ek), Lo(fl_ek)) /* efkl to low pixel */;
@@ -500,7 +508,7 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 				uint32_t ek_dj =
 					Raise(Lo(fl_ek)) /* ek verbatim to high pixel */ |
 					Average(Hi(d_c), Hi(j_i)) /* dj to low pixel */;
-				*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 8) = likely(Hi(ek_dj) == Lo(ek_dj))
+				*(uint32_t*) ((uint8_t*) to + dst_pitch + 8) = likely(Hi(ek_dj) == Lo(ek_dj))
 					? ek_dj
 					: Lo(ek_dj) /* dj verbatim to low pixel */ |
 					  Raise(Average(Hi(ek_dj), Lo(ek_dj))) /* dejk to high pixel */;
@@ -514,7 +522,7 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 
 					// Generate ghmn_gm from h_g and n_m.
 					uint32_t hn_gm = Average32(h_g, n_m);
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 4) = likely(Hi(hn_gm) == Lo(hn_gm))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 2) = likely(Hi(hn_gm) == Lo(hn_gm))
 						? hn_gm
 						: Lo(hn_gm) /* gm verbatim to low pixel */ |
 						  Raise(Average(Hi(hn_gm), Lo(hn_gm))) /* ghmn to high pixel */;
@@ -523,14 +531,14 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 					uint32_t io_hn =
 						Hi(hn_gm) /* hn verbatim to low pixel */ |
 						Raise(Average(Lo(j_i), Lo(p_o))) /* io to high pixel */;
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 4 + 4) = likely(Hi(io_hn) == Lo(io_hn))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = likely(Hi(io_hn) == Lo(io_hn))
 						? io_hn
 						: Raise(Hi(io_hn)) /* io verbatim to high pixel */ |
 						  Average(Hi(io_hn), Lo(io_hn)) /* hino to low pixel */;
 
 					// Generate lr_klqr from l_k and r_q.
 					uint32_t lr_kq = Average32(l_k, r_q);
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 4 + 12) = likely(Hi(lr_kq) == Lo(lr_kq))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 12) = likely(Hi(lr_kq) == Lo(lr_kq))
 						? lr_kq
 						: Raise(Hi(lr_kq)) /* lr verbatim to high pixel */ |
 						  Average(Hi(lr_kq), Lo(lr_kq)) /* klqr to low pixel */;
@@ -539,32 +547,32 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 					uint32_t kq_jp =
 						Raise(Lo(lr_kq)) /* kq verbatim to high pixel */ |
 						Average(Hi(j_i), Hi(p_o)) /* jp to low pixel */;
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 4 + 8) = likely(Hi(kq_jp) == Lo(kq_jp))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 2 + 8) = likely(Hi(kq_jp) == Lo(kq_jp))
 						? kq_jp
 						: Lo(kq_jp) /* jp verbatim to low pixel */ |
 						  Raise(Average(Hi(kq_jp), Lo(kq_jp))) /* jkpq to high pixel */;
 
 					// -- Row 4 --
 					// Generate mn_m from n_m.
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 6) = likely(Hi(n_m) == Lo(n_m))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 3) = likely(Hi(n_m) == Lo(n_m))
 						? n_m
 						: Lo(n_m) /* 'm' verbatim to low pixel */ |
 						  Raise(Average(Hi(n_m), Lo(n_m))) /* mn to high pixel */;
 
 					// Generate o_no from n_m and p_o.
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 6 + 4) = likely(Hi(n_m) == Lo(p_o))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 3 + 4) = likely(Hi(n_m) == Lo(p_o))
 						? Lo(p_o) | Raise(Lo(p_o))
 						: Raise(Lo(p_o)) /* 'o' verbatim to high pixel */ |
 						  Average(Lo(p_o), Hi(n_m)) /* no to low pixel */;
 
 					// Generate pq_p from p_o and r_q.
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 6 + 8) = likely(Hi(p_o) == Lo(r_q))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 3 + 8) = likely(Hi(p_o) == Lo(r_q))
 						? Lo(r_q) | Raise(Lo(r_q))
 						: Hi(p_o) /* 'p' verbatim to low pixel */ |
 						  Raise(Average(Hi(p_o), Lo(r_q))) /* pq to high pixel */;
 
 					// Generate r_qr from r_q.
-					*(uint32_t*) ((uint8_t*) to + dst_pitch * 6 + 12) = likely(Hi(r_q) == Lo(r_q))
+					*(uint32_t*) ((uint8_t*) to + dst_pitch * 3 + 12) = likely(Hi(r_q) == Lo(r_q))
 						? r_q
 						: Raise(Hi(r_q)) /* 'r' verbatim to high pixel */ |
 						  Average(Hi(r_q), Lo(r_q)) /* qr to low pixel */;
@@ -578,7 +586,7 @@ static inline void gba_upscale_aspect(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 2 whole lines of source and 3 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 2 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 7 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 3 * dst_pitch);
 	}
 }
 
@@ -654,7 +662,7 @@ static inline void gba_upscale_subpixel(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2)) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
 				? a
 				: Average(a, e);
 
@@ -665,7 +673,7 @@ static inline void gba_upscale_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: SubpixelRGB1_3(a, b);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 2) = likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = likely(a1b3 == e1f3)
 				? a1b3
 				: Average(a1b3, e1f3);
 
@@ -676,7 +684,7 @@ static inline void gba_upscale_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: SubpixelRGB1_1(b, c);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 4) = likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = likely(bc == fg)
 				? bc
 				: Average(bc, fg);
 
@@ -687,27 +695,27 @@ static inline void gba_upscale_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: SubpixelRGB3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: Average(c3d1, g3h1);
 
 			// -- Row 3 --
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4)) = e;
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = e;
 
 			// -- Row 3 pixel 2 (X = 0.75) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 2) = likely(e == f)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = likely(e == f)
 				? e
 				: SubpixelRGB1_3(e, f);
 
 			// -- Row 3 pixel 3 (X = 1.5) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 4) = likely(f == g)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = likely(f == g)
 				? f
 				: SubpixelRGB1_1(f, g);
 
 			// -- Row 3 pixel 4 (X = 2.25) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 6) = likely(g == h)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = likely(g == h)
 				? g
 				: SubpixelRGB3_1(g, h);
 
@@ -718,7 +726,7 @@ static inline void gba_upscale_subpixel(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 1 whole lines of source and 2 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 1 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 5 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 2 * dst_pitch);
 	}
 }
 
@@ -798,7 +806,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
 				? a
 				: AverageQuarters3_1(e, a);
 
@@ -809,7 +817,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: SubpixelRGB1_3(a, b);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = /* in Y */ likely(a1b3 == e1f3)
 				? a1b3
 				: AverageQuarters3_1(/* in X, bottom */ e1f3, /* in X, top */ a1b3);
 
@@ -820,7 +828,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: SubpixelRGB1_1(b, c);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = /* in Y */ likely(bc == fg)
 				? bc
 				: AverageQuarters3_1(/* in X, bottom */ fg, /* in X, top */ bc);
 
@@ -831,7 +839,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: SubpixelRGB3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: AverageQuarters3_1(/* in X, bottom */ g3h1, /* in X, top */ c3d1);
 
@@ -843,7 +851,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         l = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 2 + rightCol));
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4) = likely(e == i)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(e == i)
 				? e
 				: Average(e, i);
 
@@ -851,7 +859,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t i1j3 = likely(i == j)
 				? i
 				: SubpixelRGB1_3(i, j);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 2) = /* in Y */ likely(e1f3 == i1j3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(e1f3 == i1j3)
 				? e1f3
 				: Average(e1f3, i1j3);
 
@@ -859,7 +867,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t jk = likely(j == k)
 				? j
 				: SubpixelRGB1_1(j, k);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 4) = /* in Y */ likely(fg == jk)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(fg == jk)
 				? fg
 				: Average(fg, jk);
 
@@ -867,7 +875,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t k3l1 = likely(k == l)
 				? k
 				: SubpixelRGB3_1(k, l);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 6) = /* in Y */ likely(g3h1 == k3l1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == k3l1)
 				? g3h1
 				: Average(g3h1, k3l1);
 
@@ -879,7 +887,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         p = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 3 + rightCol));
 
 			// -- Row 4 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6) = likely(i == m)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3) = likely(i == m)
 				? i
 				: AverageQuarters3_1(i, m);
 
@@ -887,7 +895,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t m1n3 = likely(m == n)
 				? m
 				: SubpixelRGB1_3(m, n);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 2) = /* in Y */ likely(i1j3 == m1n3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 2) = /* in Y */ likely(i1j3 == m1n3)
 				? i1j3
 				: AverageQuarters3_1(/* in X, top */ i1j3, /* in X, bottom */ m1n3);
 
@@ -895,7 +903,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t no = likely(n == o)
 				? n
 				: SubpixelRGB1_1(n, o);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 4) = /* in Y */ likely(jk == no)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 4) = /* in Y */ likely(jk == no)
 				? jk
 				: AverageQuarters3_1(/* in X, top */ jk, /* in X, bottom */ no);
 
@@ -903,7 +911,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t o3p1 = likely(o == p)
 				? o
 				: SubpixelRGB3_1(o, p);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 6) = /* in Y */ likely(k3l1 == o3p1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 6) = /* in Y */ likely(k3l1 == o3p1)
 				? k3l1
 				: AverageQuarters3_1(/* in X, top */ k3l1, /* in X, bottom */ o3p1);
 
@@ -914,7 +922,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 2 whole lines of source and 3 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 2 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 7 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 3 * dst_pitch);
 	}
 
 	if (src_y % 3 == 1)
@@ -1036,7 +1044,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
 				? a
 				: AverageQuarters3_1(e, a);
 
@@ -1047,7 +1055,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: AverageQuarters3_1(b, a);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = /* in Y */ likely(a1b3 == e1f3)
 				? a1b3
 				: AverageQuarters3_1(/* in X, bottom */ e1f3, /* in X, top */ a1b3);
 
@@ -1058,7 +1066,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: Average(b, c);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = /* in Y */ likely(bc == fg)
 				? bc
 				: AverageQuarters3_1(/* in X, bottom */ fg, /* in X, top */ bc);
 
@@ -1069,7 +1077,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: AverageQuarters3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: AverageQuarters3_1(/* in X, bottom */ g3h1, /* in X, top */ c3d1);
 
@@ -1081,7 +1089,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         l = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 2 + rightCol));
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4) = likely(e == i)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(e == i)
 				? e
 				: Average(e, i);
 
@@ -1089,7 +1097,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t i1j3 = likely(i == j)
 				? i
 				: AverageQuarters3_1(j, i);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 2) = /* in Y */ likely(e1f3 == i1j3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(e1f3 == i1j3)
 				? e1f3
 				: Average(e1f3, i1j3);
 
@@ -1097,7 +1105,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t jk = likely(j == k)
 				? j
 				: Average(j, k);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 4) = /* in Y */ likely(fg == jk)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(fg == jk)
 				? fg
 				: Average(fg, jk);
 
@@ -1105,7 +1113,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t k3l1 = likely(k == l)
 				? k
 				: AverageQuarters3_1(k, l);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 6) = /* in Y */ likely(g3h1 == k3l1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == k3l1)
 				? g3h1
 				: Average(g3h1, k3l1);
 
@@ -1117,7 +1125,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         p = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 3 + rightCol));
 
 			// -- Row 4 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6) = likely(i == m)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3) = likely(i == m)
 				? i
 				: AverageQuarters3_1(i, m);
 
@@ -1125,7 +1133,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t m1n3 = likely(m == n)
 				? m
 				: AverageQuarters3_1(n, m);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 2) = /* in Y */ likely(i1j3 == m1n3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 2) = /* in Y */ likely(i1j3 == m1n3)
 				? i1j3
 				: AverageQuarters3_1(/* in X, top */ i1j3, /* in X, bottom */ m1n3);
 
@@ -1133,7 +1141,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t no = likely(n == o)
 				? n
 				: Average(n, o);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 4) = /* in Y */ likely(jk == no)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 4) = /* in Y */ likely(jk == no)
 				? jk
 				: AverageQuarters3_1(/* in X, top */ jk, /* in X, bottom */ no);
 
@@ -1141,7 +1149,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t o3p1 = likely(o == p)
 				? o
 				: AverageQuarters3_1(o, p);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 6) = /* in Y */ likely(k3l1 == o3p1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 6) = /* in Y */ likely(k3l1 == o3p1)
 				? k3l1
 				: AverageQuarters3_1(/* in X, top */ k3l1, /* in X, bottom */ o3p1);
 
@@ -1152,7 +1160,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 2 whole lines of source and 3 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 2 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 7 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 3 * dst_pitch);
 	}
 
 	if (src_y % 3 == 1)
@@ -1270,7 +1278,7 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2)) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
 				? a
 				: Average(a, e);
 
@@ -1281,7 +1289,7 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: AverageQuarters3_1(b, a);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 2) = likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = likely(a1b3 == e1f3)
 				? a1b3
 				: Average(a1b3, e1f3);
 
@@ -1292,7 +1300,7 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: Average(b, c);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 4) = likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = likely(bc == fg)
 				? bc
 				: Average(bc, fg);
 
@@ -1303,27 +1311,27 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: AverageQuarters3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 2) + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: Average(c3d1, g3h1);
 
 			// -- Row 3 --
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4)) = e;
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = e;
 
 			// -- Row 3 pixel 2 (X = 0.75) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 2) = likely(e == f)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = likely(e == f)
 				? e
 				: AverageQuarters3_1(f, e);
 
 			// -- Row 3 pixel 3 (X = 1.5) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 4) = likely(f == g)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = likely(f == g)
 				? f
 				: Average(f, g);
 
 			// -- Row 3 pixel 4 (X = 2.25) --
-			*(uint16_t*) ((uint8_t*) to + (dst_pitch * 4) + 6) = likely(g == h)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = likely(g == h)
 				? g
 				: AverageQuarters3_1(g, h);
 
@@ -1334,7 +1342,7 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 1 whole lines of source and 2 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 1 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 5 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 2 * dst_pitch);
 	}
 }
 
@@ -1342,7 +1350,7 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
 	Dest = (uint16_t*) ((uint8_t*) Dest
-		+ ((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT * 2)) / 2 * DestPitch)
+		+ ((GCW0_SCREEN_HEIGHT - GBA_SCREEN_HEIGHT) / 2 * DestPitch)
 		+ ((GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH) / 2 * sizeof(uint16_t))
 	);
 	uint32_t SrcSkip = SrcPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
@@ -1358,7 +1366,7 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 			Src += 2;
 		}
 		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
-		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
+		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip);
 	}
 }
 
@@ -1378,7 +1386,7 @@ static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
 			Src += 2;
 		}
 		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
-		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
+		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip);
 	}
 }
 
@@ -1470,7 +1478,6 @@ void ApplyScaleMode(video_scale_type NewMode)
 		case fullscreen_subpixel:
 		case fullscreen_bilinear:
 		case hardware:
-			memset(OutputSurface->pixels, 0, OutputSurface->pitch * GCW0_SCREEN_HEIGHT);
 			break;
 	}
 }
@@ -1494,6 +1501,10 @@ void ReGBA_RenderScreen(void)
 		}
 		switch (ResolvedScaleMode)
 		{
+#ifndef GCW_ZERO
+			case hardware: /* Hardware, when there's no hardware to scale
+			                  images, acts as unscaled */
+#endif
 			case unscaled:
 				gba_render(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
@@ -1513,28 +1524,27 @@ void ReGBA_RenderScreen(void)
 			case scaled_aspect:
 				gba_upscale_aspect((uint16_t*) ((uint8_t*)
 					OutputSurface->pixels +
-					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
+					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 4 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case scaled_aspect_bilinear:
 				gba_upscale_aspect_bilinear((uint16_t*) ((uint8_t*)
 					OutputSurface->pixels +
-					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
+					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 4 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case scaled_aspect_subpixel:
 				gba_upscale_aspect_subpixel((uint16_t*) ((uint8_t*)
 					OutputSurface->pixels +
-					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
+					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 4 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 #ifdef GCW_ZERO
 			case hardware:
 				gba_convert(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
-        break;
 #endif
 		}
 		ReGBA_DisplayFPS();
@@ -1605,7 +1615,7 @@ u16 *copy_screen()
 
 	for(y = 0; y < GBA_SCREEN_HEIGHT; y++)
 	{
-		memmove(dest_ptr, src_ptr, GBA_SCREEN_WIDTH * sizeof(u16));
+		memcpy(dest_ptr, src_ptr, GBA_SCREEN_WIDTH * sizeof(u16));
 		src_ptr += pitch;
 		dest_ptr += GBA_SCREEN_WIDTH;
 	}
@@ -1914,4 +1924,5 @@ void ReGBA_VideoFlip()
 	uint32_t *s = (uint32_t*)OutputSurface->pixels;
 	uint32_t *d = (uint32_t*)RS97Surface->pixels;
 	for(uint8_t y = 0; y < 240; y++, s += GCW0_SCREEN_WIDTH/2, d += 320) memmove(d, s, GCW0_SCREEN_WIDTH*2);
+
 }
