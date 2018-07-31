@@ -26,6 +26,8 @@
 
 #define ZIP_TMP "ZIPTMP.GBA" /* Acceptable on all platforms */
 
+extern char main_path[MAX_PATH + 1];
+
 ssize_t load_file_zip(const char *filename, uint8_t** ROMBuffer);
 
 #endif

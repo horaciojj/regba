@@ -22,7 +22,7 @@
 uint_fast8_t FastForwardFrameskip = 0;
 
 uint32_t PerGameFastForwardTarget = 0;
-uint32_t FastForwardTarget = 4; // 6x by default
+uint32_t FastForwardTarget = 4; // 4; 6x by default
 
 uint32_t PerGameAnalogSensitivity = 0;
 uint32_t AnalogSensitivity = 0; // require 32256/32767 of the axis by default
@@ -56,7 +56,7 @@ uint32_t OpenDinguxKeys[OPENDINGUX_BUTTON_COUNT] = {
 	0,
 	0,
 	0,
-	SDLK_HOME,       // GCW: Quick flick of Power
+	SDLK_END,       // GCW: Quick flick of Power
 };
 
 // These must be OpenDingux buttons at the bit suitable for the ReGBA_Buttons
@@ -306,7 +306,8 @@ enum ReGBA_Buttons ReGBA_GetPressedButtons()
 	// is pressed on the native device.
 	// This is not in ProcessSpecialKeys because REGBA_BUTTON_MENU needs to
 	// be returned by ReGBA_GetPressedButtons.
-		LastButtons == Hotkeys[1]
+		//LastButtons == Hotkeys[1]
+		((LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
 #endif
 	 || (LastButtons & OPENDINGUX_BUTTON_MENU))
 		Result |= REGBA_BUTTON_MENU;

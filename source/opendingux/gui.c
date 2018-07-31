@@ -19,6 +19,9 @@
 
 #include "common.h"
 
+extern char main_path[MAX_PATH + 1];
+extern char CurrentGamePath[MAX_PATH];
+
 #define COLOR_BACKGROUND       RGB888_TO_RGB565(  0,  48,   0)
 #define COLOR_ERROR_BACKGROUND RGB888_TO_RGB565( 64,   0,   0)
 #define COLOR_INACTIVE_TEXT    RGB888_TO_RGB565( 64, 160,  64)
@@ -1180,7 +1183,8 @@ static struct MenuEntry PerGameDisplayMenu_ScaleMode = {
 };
 static struct MenuEntry DisplayMenu_ScaleMode = {
 	ENTRY_OPTION("image_size", "Image scaling", &ScaleMode),
-	.ChoiceCount = 8, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
+	//.ChoiceCount = 8, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
+	.ChoiceCount = 7, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" } }
 };
 
 static struct MenuEntry PerGameDisplayMenu_Frameskip = {
@@ -1536,13 +1540,16 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 
 		ReGBA_VideoFlip();
 		
-		// Wait. (This is for platforms on which flips don't wait for vertical
+    // Wait. (This is for platforms on which flips don't wait for vertical
 		// sync.)
 		usleep(5000);
 
-		// Get input.
-		enum GUI_Action Action = GetGUIAction();
-		
+    // Get input.
+    enum GUI_Action Action = GetGUIAction();
+    if(Action == GUI_ACTION_NONE){
+      continue;
+    }
+
 		switch (Action)
 		{
 			case GUI_ACTION_ENTER:
@@ -1599,8 +1606,9 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 				break;
 
 			case GUI_ACTION_ALTERNATE:
-				if (IsGameLoaded && ActiveMenu->AlternateVersion != NULL)
+				if (IsGameLoaded && ActiveMenu->AlternateVersion != NULL) {
 					ActiveMenu = ActiveMenu->AlternateVersion;
+        }
 				break;
 
 			default:

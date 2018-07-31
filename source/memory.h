@@ -190,7 +190,7 @@ extern uint32_t mem_save_flag;
 extern char gamepak_title[13];
 extern char gamepak_code[5];
 extern char gamepak_maker[3];
-extern char CurrentGamePath[MAX_PATH];
+//extern char CurrentGamePath[MAX_PATH];
 extern bool IsGameLoaded;
 extern uint32_t gamepak_crc32;
 
@@ -240,7 +240,7 @@ extern uint8_t *memory_map_write[8 * 1024];
 
 // This is the path to per-user files for ReGBA. This path does not have
 // a trailing slash.
-extern char main_path[MAX_PATH + 1];
+//extern char main_path[MAX_PATH + 1];
 
 extern FILE_TAG_TYPE gamepak_file_large;
 

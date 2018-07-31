@@ -1,6 +1,6 @@
 TARGET      := regba
 
-CROSS_COMPILE ?= mipsel-linux-
+CROSS_COMPILE ?= /opt/rs97-toolchain/bin/mipsel-linux-
 CC          := $(CROSS_COMPILE)gcc
 STRIP       := $(CROSS_COMPILE)strip
 
@@ -19,17 +19,13 @@ HEADERS     := cheats.h ../common.h ../cpu_common.h ../cpu.h draw.h main.h    \
                imageio.h ../unifont.h od-input.h settings.h
 
 INCLUDE     := -I. -I.. -I../mips
-DEFS        := -DGCW_ZERO -DMIPS_XBURST -DLOAD_ALL_ROM                        \
+DEFS        := -DDINGOO_A320 -DMIPS_XBURST -DLOAD_ALL_ROM                        \
                -DGIT_VERSION=$(shell git describe --always)
-HAS_MIPS32R2 := $(shell echo | $(CC) -dM -E - |grep _MIPS_ARCH_MIPS32R2)
-ifneq ($(HAS_MIPS32R2),)
-	DEFS += -DMIPS_32R2
-endif
 
-CFLAGS      := $(SDL_CFLAGS) -mno-abicalls -Wall -Wno-unused-variable \
-               -O2 -fomit-frame-pointer $(DEFS) $(INCLUDE)
-ASFLAGS     := $(CFLAGS) -D__ASSEMBLY__
-LDFLAGS     := $(SDL_LIBS) -lpthread -lz -lm -lpng
+CFLAGS      = $(SDL_CFLAGS) -mno-abicalls -Wall -Wno-unused-variable \
+               -O2 -msym32 -mlong-calls -fno-pic -fno-pie -fdata-sections -ffunction-sections -mhard-float -fomit-frame-pointer -mno-mips16 -mips32 -mtune=mips32 -mno-shared $(DEFS) $(INCLUDE)
+ASFLAGS     := $(CFLAGS) -D__ASSEMBLY__ -mno-abicalls -fno-PIC -fno-PIE -Wa,-mno-shared
+LDFLAGS     := $(SDL_LIBS) -lpthread -lz -lm -lpng -lSDL_image -Wl,--as-needed -Wl,--gc-sections -flto -s -fno-PIC -fno-PIE
 
 DATA_TO_CLEAN := .opk_data $(TARGET).opk
 
@@ -42,14 +38,13 @@ all: $(TARGET)
 opk: $(TARGET).opk
 
 $(TARGET).opk: $(TARGET)
-	$(SUM) "  OPK     $@"
-	$(CMD)rm -rf .opk_data
-	$(CMD)cp -r data .opk_data
-	$(CMD)cp ../../game_config.txt .opk_data
-	$(CMD)cp ../../bios/gba_bios.bin .opk_data
-	$(CMD)cp $< .opk_data/regba
-	$(CMD)$(STRIP) .opk_data/regba
-	$(CMD)mksquashfs .opk_data $@ -all-root -noappend -no-exports -no-xattrs -no-progress >/dev/null
+	rm -rf .opk_data
+	cp -r data .opk_data
+	cp ../../game_config.txt .opk_data
+	cp ../../bios/gba_bios.bin .opk_data
+	cp $< .opk_data/regba
+	$(STRIP) .opk_data/regba
+	mksquashfs .opk_data $@ -all-root -noappend -no-exports -no-xattrs -no-progress >/dev/null
 
 # The two below declarations ensure that editing a .c file recompiles only that
 # file, but editing a .h file recompiles everything.

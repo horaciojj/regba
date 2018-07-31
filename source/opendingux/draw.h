@@ -8,6 +8,7 @@
 
 extern SDL_Surface* GBAScreenSurface;
 extern SDL_Surface* OutputSurface;
+extern SDL_Surface* RS97Surface;
 
 extern uint_fast8_t AudioFrameskip;
 extern uint_fast8_t AudioFrameskipControl;

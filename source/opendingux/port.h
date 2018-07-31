@@ -11,6 +11,7 @@ typedef uint64_t u64;
 
 typedef FILE* FILE_TAG_TYPE;
 
+#define PATH_MAX 1024
 #define MAX_PATH PATH_MAX
 #define MAX_FILE PATH_MAX
 
