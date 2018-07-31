@@ -1615,7 +1615,7 @@ u16 *copy_screen()
 
 	for(y = 0; y < GBA_SCREEN_HEIGHT; y++)
 	{
-		memcpy(dest_ptr, src_ptr, GBA_SCREEN_WIDTH * sizeof(u16));
+		memmove(dest_ptr, src_ptr, GBA_SCREEN_WIDTH * sizeof(u16));
 		src_ptr += pitch;
 		dest_ptr += GBA_SCREEN_WIDTH;
 	}
