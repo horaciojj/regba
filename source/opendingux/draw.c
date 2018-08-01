@@ -67,11 +67,7 @@ void init_video()
 
 	SDL_ShowCursor(SDL_DISABLE);
 	RS97Surface = SDL_SetVideoMode(320, 480, 16, SDL_HWSURFACE);
-	OutputSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16,
-	  GBA_RED_MASK,
-	  GBA_GREEN_MASK,
-	  GBA_BLUE_MASK,
-	  0 /* alpha: none */);
+	OutputSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, 0, 0, 0, 0);
 	GBAScreenSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, 16,
 	  GBA_RED_MASK,
 	  GBA_GREEN_MASK,
