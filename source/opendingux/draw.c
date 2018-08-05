@@ -1919,6 +1919,6 @@ void ReGBA_VideoFlip()
 	// 	SDL_LockSurface(OutputSurface);
 	uint32_t *s = (uint32_t*)OutputSurface->pixels;
 	uint32_t *d = (uint32_t*)RS97Surface->pixels;
-	for(uint8_t y = 0; y < 240; y++, s += GCW0_SCREEN_WIDTH/2, d += 320) memmove(d, s, GCW0_SCREEN_WIDTH*2);
+	for(uint8_t y = 0; y < 240; y++, s += GCW0_SCREEN_WIDTH/2, d += 320) memmove(d, s, GCW0_SCREEN_WIDTH*4);
 
 }
