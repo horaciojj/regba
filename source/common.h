@@ -191,6 +191,9 @@ enum ReGBA_FileAction {
 extern uint16_t* GBAScreen;
 extern uint32_t  GBAScreenPitch;
 
+char executable_path[MAX_PATH + 1];
+SDL_Surface *BorderSurface; // = NULL;
+
 // - - - CROSS-PLATFORM FUNCTION DEFINITIONS - - -
 
 /*

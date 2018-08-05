@@ -42,7 +42,6 @@ u32 thumb_frame = 0;
 
 u32 synchronize_flag = 1;
 
-char executable_path[MAX_PATH + 1];
 extern char main_path[MAX_PATH + 1];
 extern char CurrentGamePath[MAX_PATH];
 

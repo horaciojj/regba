@@ -37,8 +37,8 @@ uint_fast8_t FramesBordered = 0;
 
 SDL_Surface *GBAScreenSurface = NULL;
 SDL_Surface *OutputSurface = NULL;
-SDL_Surface *BorderSurface = NULL;
 SDL_Surface *RS97Surface = NULL;
+// extern SDL_Surface *BorderSurface; // = NULL;
 
 video_scale_type PerGameScaleMode = 0;
 video_scale_type ScaleMode = scaled_aspect;
