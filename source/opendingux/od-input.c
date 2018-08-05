@@ -62,8 +62,8 @@ uint32_t OpenDinguxKeys[OPENDINGUX_BUTTON_COUNT] = {
 // These must be OpenDingux buttons at the bit suitable for the ReGBA_Buttons
 // enumeration.
 const enum OpenDingux_Buttons DefaultKeypadRemapping[12] = {
-	OPENDINGUX_BUTTON_FACE_RIGHT, // GBA A
-	OPENDINGUX_BUTTON_FACE_DOWN,  // GBA B
+	OPENDINGUX_BUTTON_FACE_DOWN, // GBA A
+	OPENDINGUX_BUTTON_FACE_LEFT,  // GBA B
 	OPENDINGUX_BUTTON_SELECT,     // GBA Select
 	OPENDINGUX_BUTTON_START,      // GBA Start
 	OPENDINGUX_BUTTON_RIGHT,      // GBA D-pad Right
@@ -72,8 +72,8 @@ const enum OpenDingux_Buttons DefaultKeypadRemapping[12] = {
 	OPENDINGUX_BUTTON_DOWN,       // GBA D-pad Down
 	OPENDINGUX_BUTTON_R,          // GBA R trigger
 	OPENDINGUX_BUTTON_L,          // GBA L trigger
-	0,                            // ReGBA rapid-fire A
-	0,                            // ReGBA rapid-fire B
+	OPENDINGUX_BUTTON_FACE_RIGHT,  // ReGBA rapid-fire A
+	OPENDINGUX_BUTTON_FACE_UP,  // ReGBA rapid-fire B
 };
 
 // These must be OpenDingux buttons at the bit suitable for the ReGBA_Buttons
@@ -93,8 +93,8 @@ enum OpenDingux_Buttons PerGameKeypadRemapping[12] = {
 	0, // ReGBA rapid-fire B
 };
 enum OpenDingux_Buttons KeypadRemapping[12] = {
-	OPENDINGUX_BUTTON_FACE_RIGHT, // GBA A
-	OPENDINGUX_BUTTON_FACE_DOWN,  // GBA B
+	OPENDINGUX_BUTTON_FACE_DOWN, // GBA A
+	OPENDINGUX_BUTTON_FACE_LEFT,  // GBA B
 	OPENDINGUX_BUTTON_SELECT,     // GBA Select
 	OPENDINGUX_BUTTON_START,      // GBA Start
 	OPENDINGUX_BUTTON_RIGHT,      // GBA D-pad Right
@@ -103,8 +103,8 @@ enum OpenDingux_Buttons KeypadRemapping[12] = {
 	OPENDINGUX_BUTTON_DOWN,       // GBA D-pad Down
 	OPENDINGUX_BUTTON_R,          // GBA R trigger
 	OPENDINGUX_BUTTON_L,          // GBA L trigger
-	0,                            // ReGBA rapid-fire A
-	0,                            // ReGBA rapid-fire B
+	OPENDINGUX_BUTTON_FACE_RIGHT,  // ReGBA rapid-fire A
+	OPENDINGUX_BUTTON_FACE_UP,  // ReGBA rapid-fire B
 };
 
 enum OpenDingux_Buttons PerGameHotkeys[5] = {
@@ -307,9 +307,10 @@ enum ReGBA_Buttons ReGBA_GetPressedButtons()
 	// This is not in ProcessSpecialKeys because REGBA_BUTTON_MENU needs to
 	// be returned by ReGBA_GetPressedButtons.
 		//LastButtons == Hotkeys[1]
-		((LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
+		// ((LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
 #endif
-	 || (LastButtons & OPENDINGUX_BUTTON_MENU))
+	 // || 
+	 (LastButtons & OPENDINGUX_BUTTON_MENU))
 		Result |= REGBA_BUTTON_MENU;
 
 	return Result;
