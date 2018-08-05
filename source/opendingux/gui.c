@@ -1160,11 +1160,11 @@ static struct Menu DebugMenu = {
 // -- Display Settings --
 
 static struct MenuEntry PerGameDisplayMenu_BootSource = {
-	ENTRY_OPTION("boot_from", "Boot from", &PerGameBootFromBIOS),
+	ENTRY_OPTION("boot_from", "Boot", &PerGameBootFromBIOS),
 	.ChoiceCount = 3, .Choices = { { "No override", "" }, { "Cartridge ROM", "cartridge" }, { "GBA BIOS", "gba_bios" } }
 };
 static struct MenuEntry DisplayMenu_BootSource = {
-	ENTRY_OPTION("boot_from", "Boot from", &BootFromBIOS),
+	ENTRY_OPTION("boot_from", "Boot", &BootFromBIOS),
 	.ChoiceCount = 2, .Choices = { { "Cartridge ROM", "cartridge" }, { "GBA BIOS", "gba_bios" } }
 };
 
@@ -1197,11 +1197,11 @@ static struct MenuEntry DisplayMenu_Frameskip = {
 };
 
 static struct MenuEntry PerGameDisplayMenu_FastForwardTarget = {
-	ENTRY_OPTION("fast_forward_target", "Fast-forward target", &PerGameFastForwardTarget),
+	ENTRY_OPTION("fast_forward_target", "Fast-forward", &PerGameFastForwardTarget),
 	.ChoiceCount = 6, .Choices = { { "No override", "" }, { "2x (~120 FPS)", "2" }, { "3x (~180 FPS)", "3" }, { "4x (~240 FPS)", "4" }, { "5x (~300 FPS)", "5" }, { "6x (~360 FPS)", "6" } }
 };
 static struct MenuEntry DisplayMenu_FastForwardTarget = {
-	ENTRY_OPTION("fast_forward_target", "Fast-forward target", &FastForwardTarget),
+	ENTRY_OPTION("fast_forward_target", "Fast-forward", &FastForwardTarget),
 	.ChoiceCount = 5, .Choices = { { "2x (~120 FPS)", "2" }, { "3x (~180 FPS)", "3" }, { "4x (~240 FPS)", "4" }, { "5x (~300 FPS)", "5" }, { "6x (~360 FPS)", "6" } }
 };
 
@@ -1273,20 +1273,20 @@ static struct MenuEntry InputMenu_R = {
 };
 
 static struct MenuEntry PerGameInputMenu_RapidA = {
-	ENTRY_OPTION("rapid_a", "Rapid-fire A", &PerGameKeypadRemapping[10]),
+	ENTRY_OPTION("rapid_a", "Turbo A", &PerGameKeypadRemapping[10]),
 	ENTRY_OPTIONAL_MAPPING
 };
 static struct MenuEntry InputMenu_RapidA = {
-	ENTRY_OPTION("rapid_a", "Rapid-fire A", &KeypadRemapping[10]),
+	ENTRY_OPTION("rapid_a", "Turbo A", &KeypadRemapping[10]),
 	ENTRY_OPTIONAL_MAPPING
 };
 
 static struct MenuEntry PerGameInputMenu_RapidB = {
-	ENTRY_OPTION("rapid_b", "Rapid-fire B", &PerGameKeypadRemapping[11]),
+	ENTRY_OPTION("rapid_b", "Turbo B", &PerGameKeypadRemapping[11]),
 	ENTRY_OPTIONAL_MAPPING
 };
 static struct MenuEntry InputMenu_RapidB = {
-	ENTRY_OPTION("rapid_b", "Rapid-fire B", &KeypadRemapping[11]),
+	ENTRY_OPTION("rapid_b", "Turbo B", &KeypadRemapping[11]),
 	ENTRY_OPTIONAL_MAPPING
 };
 
@@ -1333,11 +1333,11 @@ static struct Menu InputMenu = {
 // -- Hotkeys --
 
 static struct MenuEntry PerGameHotkeyMenu_FastForward = {
-	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward while held", &PerGameHotkeys[0]),
+	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward (hold)", &PerGameHotkeys[0]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_FastForward = {
-	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward while held", &Hotkeys[0]),
+	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward (hold)", &Hotkeys[0]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
@@ -1349,29 +1349,29 @@ static struct MenuEntry HotkeyMenu_Menu = {
 #endif
 
 static struct MenuEntry PerGameHotkeyMenu_FastForwardToggle = {
-	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward toggle", &PerGameHotkeys[2]),
+	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward (toggle)", &PerGameHotkeys[2]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_FastForwardToggle = {
-	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward toggle", &Hotkeys[2]),
+	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward (toggle)", &Hotkeys[2]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
 static struct MenuEntry PerGameHotkeyMenu_QuickLoadState = {
-	ENTRY_OPTION("hotkey_quick_load_state", "Quick load state #1", &PerGameHotkeys[3]),
+	ENTRY_OPTION("hotkey_quick_load_state", "Quick load #1", &PerGameHotkeys[3]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_QuickLoadState = {
-	ENTRY_OPTION("hotkey_quick_load_state", "Quick load state #1", &Hotkeys[3]),
+	ENTRY_OPTION("hotkey_quick_load_state", "Quick load #1", &Hotkeys[3]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
 static struct MenuEntry PerGameHotkeyMenu_QuickSaveState = {
-	ENTRY_OPTION("hotkey_quick_save_state", "Quick save state #1", &PerGameHotkeys[4]),
+	ENTRY_OPTION("hotkey_quick_save_state", "Quick save #1", &PerGameHotkeys[4]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_QuickSaveState = {
-	ENTRY_OPTION("hotkey_quick_save_state", "Quick save state #1", &Hotkeys[4]),
+	ENTRY_OPTION("hotkey_quick_save_state", "Quick save #1", &Hotkeys[4]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
@@ -1405,22 +1405,22 @@ static struct MenuEntry SavedStateMenu_SelectedState = {
 };
 
 static struct MenuEntry SavedStateMenu_Read = {
-	.Kind = KIND_CUSTOM, .Name = "Load from selected slot",
+	.Kind = KIND_CUSTOM, .Name = "Load",
 	.ButtonEnterFunction = ActionSavedStateRead
 };
 
 static struct MenuEntry SavedStateMenu_Write = {
-	.Kind = KIND_CUSTOM, .Name = "Save to selected slot",
+	.Kind = KIND_CUSTOM, .Name = "Save",
 	.ButtonEnterFunction = ActionSavedStateWrite
 };
 
 static struct MenuEntry SavedStateMenu_Delete = {
-	.Kind = KIND_CUSTOM, .Name = "Delete selected state",
+	.Kind = KIND_CUSTOM, .Name = "Delete",
 	.ButtonEnterFunction = ActionSavedStateDelete
 };
 
 static struct Menu SavedStateMenu = {
-	.Parent = &MainMenu, .Title = "Saved states",
+	.Parent = &MainMenu, .Title = "Save states",
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
 	.Entries = { &SavedStateMenu_SelectedState, &Strut, &SavedStateMenu_Read, &SavedStateMenu_Write, &SavedStateMenu_Delete, NULL }
@@ -1429,41 +1429,41 @@ static struct Menu SavedStateMenu = {
 // -- Main Menu --
 
 static struct MenuEntry PerGameMainMenu_Display = {
-	ENTRY_SUBMENU("Display settings...", &PerGameDisplayMenu)
+	ENTRY_SUBMENU("Display", &PerGameDisplayMenu)
 };
 static struct MenuEntry MainMenu_Display = {
-	ENTRY_SUBMENU("Display settings...", &DisplayMenu)
+	ENTRY_SUBMENU("Display", &DisplayMenu)
 };
 
 static struct MenuEntry PerGameMainMenu_Input = {
-	ENTRY_SUBMENU("Input settings...", &PerGameInputMenu)
+	ENTRY_SUBMENU("Input", &PerGameInputMenu)
 };
 static struct MenuEntry MainMenu_Input = {
-	ENTRY_SUBMENU("Input settings...", &InputMenu)
+	ENTRY_SUBMENU("Input", &InputMenu)
 };
 
 static struct MenuEntry PerGameMainMenu_Hotkey = {
-	ENTRY_SUBMENU("Hotkeys...", &PerGameHotkeyMenu)
+	ENTRY_SUBMENU("Hotkeys", &PerGameHotkeyMenu)
 };
 static struct MenuEntry MainMenu_Hotkey = {
-	ENTRY_SUBMENU("Hotkeys...", &HotkeyMenu)
+	ENTRY_SUBMENU("Hotkeys", &HotkeyMenu)
 };
 
 static struct MenuEntry MainMenu_SavedStates = {
-	ENTRY_SUBMENU("Saved states...", &SavedStateMenu)
+	ENTRY_SUBMENU("Save states", &SavedStateMenu)
 };
 
 static struct MenuEntry MainMenu_Debug = {
-	ENTRY_SUBMENU("Performance and debugging...", &DebugMenu)
+	ENTRY_SUBMENU("Debugging", &DebugMenu)
 };
 
 static struct MenuEntry MainMenu_Reset = {
-	.Kind = KIND_CUSTOM, .Name = "Reset the game",
+	.Kind = KIND_CUSTOM, .Name = "Reset",
 	.ButtonEnterFunction = &ActionReset
 };
 
 static struct MenuEntry MainMenu_Return = {
-	.Kind = KIND_CUSTOM, .Name = "Return to the game",
+	.Kind = KIND_CUSTOM, .Name = "Return to game",
 	.ButtonEnterFunction = &ActionReturn
 };
 
