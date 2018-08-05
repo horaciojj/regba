@@ -318,6 +318,9 @@ static void DefaultDisplayValueFunction(struct MenuEntry* DrawnMenuEntry, struct
 
 static void DefaultDisplayBackgroundFunction(struct Menu* ActiveMenu)
 {
+	// ApplyBorder("regba-sp-border-silver.png");
+
+
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_UnlockSurface(OutputSurface);
 	SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
@@ -1004,7 +1007,7 @@ static struct Menu NativeCodeMenu = {
 };
 
 static struct MenuEntry DebugMenu_NativeCode = {
-	ENTRY_SUBMENU("Native code statistics...", &NativeCodeMenu)
+	ENTRY_SUBMENU("Native code statistics", &NativeCodeMenu)
 };
 
 // -- Debug > Metadata stats --
@@ -1043,7 +1046,7 @@ static struct Menu MetadataMenu = {
 };
 
 static struct MenuEntry DebugMenu_Metadata = {
-	ENTRY_SUBMENU("Metadata clear statistics...", &MetadataMenu)
+	ENTRY_SUBMENU("Metadata clear statistics", &MetadataMenu)
 };
 
 // -- Debug > Execution stats --
@@ -1088,7 +1091,7 @@ static struct Menu ExecutionMenu = {
 };
 
 static struct MenuEntry DebugMenu_Execution = {
-	ENTRY_SUBMENU("Execution statistics...", &ExecutionMenu)
+	ENTRY_SUBMENU("Execution statistics", &ExecutionMenu)
 };
 
 // -- Debug > Code reuse stats --
@@ -1116,7 +1119,7 @@ static struct Menu ReuseMenu = {
 };
 
 static struct MenuEntry DebugMenu_Reuse = {
-	ENTRY_SUBMENU("Code reuse statistics...", &ReuseMenu)
+	ENTRY_SUBMENU("Code reuse statistics", &ReuseMenu)
 };
 #endif
 
@@ -1138,11 +1141,11 @@ static struct Menu ROMInfoMenu = {
 };
 
 static struct MenuEntry DebugMenu_ROMInfo = {
-	ENTRY_SUBMENU("ROM information...", &ROMInfoMenu)
+	ENTRY_SUBMENU("ROM information", &ROMInfoMenu)
 };
 
 static struct MenuEntry DebugMenu_VersionInfo = {
-	.Kind = KIND_CUSTOM, .Name = "ReGBA version information...",
+	.Kind = KIND_CUSTOM, .Name = "ReGBA version information",
 	.ButtonEnterFunction = &ActionShowVersion
 };
 
