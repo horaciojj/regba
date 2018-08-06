@@ -360,7 +360,7 @@ static void DisplayPerGameTitleFunction(struct Menu* ActiveMenu)
 	char ForGame[MAX_PATH * 2];
 	char FileNameNoExt[MAX_PATH + 1];
 	GetFileNameNoExtension(FileNameNoExt, CurrentGamePath);
-	sprintf(ForGame, "for %s", FileNameNoExt);
+	sprintf(ForGame, "%s", FileNameNoExt);
 	PrintStringOutline(ForGame, COLOR_TITLE_TEXT, COLOR_TITLE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" "), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, CENTER, TOP);
 }
 
