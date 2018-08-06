@@ -1,4 +1,4 @@
-TARGET      := regba
+TARGET      := data/regba.dge
 
 CROSS_COMPILE ?= /opt/rs97-toolchain/bin/mipsel-linux-
 CC          := $(CROSS_COMPILE)gcc
