@@ -361,7 +361,7 @@ static void DisplayPerGameTitleFunction(struct Menu* ActiveMenu)
 	char FileNameNoExt[MAX_PATH + 1];
 	GetFileNameNoExtension(FileNameNoExt, CurrentGamePath);
 	sprintf(ForGame, "%s", FileNameNoExt);
-	PrintStringOutline(ForGame, COLOR_TITLE_TEXT, COLOR_TITLE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" "), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, CENTER, TOP);
+	PrintStringOutline(ForGame, COLOR_TITLE_TEXT, COLOR_TITLE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, 24, GetRenderedHeight(" ") + 4, GCW0_SCREEN_WIDTH - 48, GetRenderedHeight(" ") + 2, CENTER, TOP);
 }
 
 void DefaultLoadFunction(struct MenuEntry* ActiveMenuEntry, char* Value)
@@ -1211,12 +1211,12 @@ static struct Menu PerGameDisplayMenu = {
 	.Parent = &PerGameMainMenu, .Title = "Display settings",
 	MENU_PER_GAME,
 	.AlternateVersion = &DisplayMenu,
-	.Entries = { &PerGameDisplayMenu_BootSource, &PerGameDisplayMenu_FPSCounter, &PerGameDisplayMenu_ScaleMode, &PerGameDisplayMenu_Frameskip, &PerGameDisplayMenu_FastForwardTarget, NULL }
+	.Entries = { &PerGameDisplayMenu_ScaleMode, &PerGameDisplayMenu_Frameskip, &PerGameDisplayMenu_FPSCounter, &PerGameDisplayMenu_FastForwardTarget, &PerGameDisplayMenu_BootSource, NULL }
 };
 static struct Menu DisplayMenu = {
 	.Parent = &MainMenu, .Title = "Display settings",
 	.AlternateVersion = &PerGameDisplayMenu,
-	.Entries = { &DisplayMenu_BootSource, &DisplayMenu_FPSCounter, &DisplayMenu_ScaleMode, &DisplayMenu_Frameskip, &DisplayMenu_FastForwardTarget, NULL }
+	.Entries = { &DisplayMenu_ScaleMode, &DisplayMenu_Frameskip, &DisplayMenu_FPSCounter, &DisplayMenu_FastForwardTarget, &DisplayMenu_BootSource, NULL }
 };
 
 // -- Input Settings --
@@ -1316,7 +1316,7 @@ static struct Menu PerGameInputMenu = {
 	.Parent = &PerGameMainMenu, .Title = "Input settings",
 	MENU_PER_GAME,
 	.AlternateVersion = &InputMenu,
-	.Entries = { &PerGameInputMenu_A, &PerGameInputMenu_B, &PerGameInputMenu_Start, &PerGameInputMenu_Select, &PerGameInputMenu_L, &PerGameInputMenu_R, &PerGameInputMenu_RapidA, &PerGameInputMenu_RapidB
+	.Entries = { &PerGameInputMenu_A, &PerGameInputMenu_B, &PerGameInputMenu_L, &PerGameInputMenu_R, &PerGameInputMenu_Start, &PerGameInputMenu_Select, &PerGameInputMenu_RapidA, &PerGameInputMenu_RapidB
 #ifdef GCW_ZERO
 	, &Strut, &PerGameInputMenu_AnalogSensitivity, &PerGameInputMenu_AnalogAction
 #endif
@@ -1325,7 +1325,7 @@ static struct Menu PerGameInputMenu = {
 static struct Menu InputMenu = {
 	.Parent = &MainMenu, .Title = "Input settings",
 	.AlternateVersion = &PerGameInputMenu,
-	.Entries = { &InputMenu_A, &InputMenu_B, &InputMenu_Start, &InputMenu_Select, &InputMenu_L, &InputMenu_R, &InputMenu_RapidA, &InputMenu_RapidB
+	.Entries = { &InputMenu_A, &InputMenu_B, &InputMenu_L, &InputMenu_R, &InputMenu_Start, &InputMenu_Select, &InputMenu_RapidA, &InputMenu_RapidB
 #ifdef GCW_ZERO
 	, &Strut, &InputMenu_AnalogSensitivity, &InputMenu_AnalogAction
 #endif
