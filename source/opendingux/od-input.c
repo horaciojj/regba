@@ -32,7 +32,7 @@ uint32_t AnalogAction = 0;
 
 uint_fast8_t FastForwardFrameskipControl = 0;
 
-static SDL_Joystick* Joystick;
+//static SDL_Joystick* Joystick;
 
 static bool JoystickInitialised = false;
 
@@ -56,7 +56,7 @@ uint32_t OpenDinguxKeys[OPENDINGUX_BUTTON_COUNT] = {
 	0,
 	0,
 	0,
-	SDLK_HOME,       // GCW: Quick flick of Power
+	SDLK_3,       // GCW: Quick flick of Power
 };
 
 // These must be OpenDingux buttons at the bit suitable for the ReGBA_Buttons
@@ -297,18 +297,7 @@ enum ReGBA_Buttons ReGBA_GetPressedButtons()
 	if ((Result & REGBA_BUTTON_UP) && (Result & REGBA_BUTTON_DOWN))
 		Result &= ~REGBA_BUTTON_UP;
 
-	if (
-#if defined GCW_ZERO
-	// Unified emulator menu buttons: Start+Select
-		((LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
-#else
-	// The ReGBA Menu key should be pressed if ONLY the hotkey bound to it
-	// is pressed on the native device.
-	// This is not in ProcessSpecialKeys because REGBA_BUTTON_MENU needs to
-	// be returned by ReGBA_GetPressedButtons.
-		LastButtons == Hotkeys[1]
-#endif
-	 || (LastButtons & OPENDINGUX_BUTTON_MENU))
+	if (LastButtons & OPENDINGUX_BUTTON_MENU)
 		Result |= REGBA_BUTTON_MENU;
 
 	return Result;
@@ -344,32 +333,32 @@ enum OpenDingux_Buttons GetPressedOpenDinguxButtons()
 
 static void EnsureJoystick()
 {
-	if (!JoystickInitialised)
-	{
-		JoystickInitialised = true;
-		Joystick = SDL_JoystickOpen(0);
-		if (Joystick == NULL)
-		{
-			ReGBA_Trace("I: Joystick #0 could not be opened");
-		}
-	}
+	// if (!JoystickInitialised)
+	// {
+		// JoystickInitialised = true;
+		// Joystick = SDL_JoystickOpen(0);
+		// if (Joystick == NULL)
+		// {
+			// ReGBA_Trace("I: Joystick #0 could not be opened");
+		// }
+	// }
 }
 
 int16_t GetHorizontalAxisValue()
 {
-	EnsureJoystick();
-	if (Joystick != NULL)
-		return SDL_JoystickGetAxis(Joystick, 0);
-	else
+	// EnsureJoystick();
+	// if (Joystick != NULL)
+		// return SDL_JoystickGetAxis(Joystick, 0);
+	// else
 		return 0;
 }
 
 int16_t GetVerticalAxisValue()
 {
-	EnsureJoystick();
-	if (Joystick != NULL)
-		return SDL_JoystickGetAxis(Joystick, 1);
-	else
+	// EnsureJoystick();
+	// if (Joystick != NULL)
+		// return SDL_JoystickGetAxis(Joystick, 1);
+	// else
 		return 0;
 }
 
