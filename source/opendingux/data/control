@@ -1,0 +1,10 @@
+Package: regba
+Version: 
+Description: ReGBA port for the RetroFW
+Section: emus
+Priority: optional
+Maintainer: TonyJih
+Architecture: mipsel
+Homepage: https://github.com/pingflood/ReGBA
+Depends:
+Source: https://github.com/pingflood/ReGBA

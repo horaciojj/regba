@@ -1,6 +1,8 @@
-TARGET      := regba
+TARGET      := data/regba.dge
 
-CROSS_COMPILE ?= mipsel-linux-
+CHAINPREFIX := /opt/mipsel-linux-uclibc-debug
+CROSS_COMPILE := $(CHAINPREFIX)/usr/bin/mipsel-linux-
+
 CC          := $(CROSS_COMPILE)gcc
 STRIP       := $(CROSS_COMPILE)strip
 
@@ -44,6 +46,18 @@ include ../Makefile.rules
 all: $(TARGET)
 
 opk: $(TARGET).opk
+
+ipk: $(TARGET)
+	@rm -rf /tmp/.regba-ipk/ && mkdir -p /tmp/.regba-ipk/root/home/retrofw/.gpsp /tmp/.regba-ipk/root/home/retrofw/emus/regba /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
+	@cp ../../game_config.txt ../../bios/gba_bios.bin /tmp/.regba-ipk/root/home/retrofw/.gpsp
+	@cp data/regba.dge data/regba.man.txt data/regba.png /tmp/.regba-ipk/root/home/retrofw/emus/regba
+	@cp data/regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators
+	@cp data/gba.regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
+	@sed "s/^Version:.*/Version: $$(date +%Y%m%d)/" data/control > /tmp/.regba-ipk/control
+	@tar --owner=0 --group=0 -czvf /tmp/.regba-ipk/control.tar.gz -C /tmp/.regba-ipk/ control
+	@tar --owner=0 --group=0 -czvf /tmp/.regba-ipk/data.tar.gz -C /tmp/.regba-ipk/root/ .
+	@echo 2.0 > /tmp/.regba-ipk/debian-binary
+	@ar r data/regba.ipk /tmp/.regba-ipk/control.tar.gz /tmp/.regba-ipk/data.tar.gz /tmp/.regba-ipk/debian-binary
 
 $(TARGET).opk: $(TARGET)
 	$(SUM) "  OPK     $@"
