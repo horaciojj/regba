@@ -9,3 +9,6 @@
 [Tt]humbs.db
 log
 *.ipk
+*.log
+*.dge
+*.patch

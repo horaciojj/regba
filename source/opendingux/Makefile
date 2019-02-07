@@ -50,7 +50,7 @@ opk: $(TARGET).opk
 ipk: $(TARGET)
 	@rm -rf /tmp/.regba-ipk/ && mkdir -p /tmp/.regba-ipk/root/home/retrofw/.gpsp /tmp/.regba-ipk/root/home/retrofw/emus/regba /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
 	@cp ../../game_config.txt ../../bios/gba_bios.bin /tmp/.regba-ipk/root/home/retrofw/.gpsp
-	@cp data/regba.dge data/regba.man.txt data/regba.png /tmp/.regba-ipk/root/home/retrofw/emus/regba
+	@cp data/regba.dge data/regba.man.txt data/regba.png data/regba-sp-border-silver.png /tmp/.regba-ipk/root/home/retrofw/emus/regba
 	@cp data/regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators
 	@cp data/gba.regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
 	@sed "s/^Version:.*/Version: $$(date +%Y%m%d)/" data/control > /tmp/.regba-ipk/control
