@@ -25,7 +25,7 @@ OPTIMIZE =  -O2 -mips32 -march=mips32 -mno-mips16 -fomit-frame-pointer -fno-buil
             -fno-common -Wno-write-strings -Wno-sign-compare -ffast-math -ftree-vectorize \
 			-funswitch-loops -fno-strict-aliasing
 			
-DEFS        := -DGCW_ZERO -DMIPS_XBURST -DLOAD_ALL_ROM                        \
+DEFS        := -DGCW_ZERO -DRETROGAME -DMIPS_XBURST -DLOAD_ALL_ROM                        \
                -DGIT_VERSION=$(shell git describe --always)
 HAS_MIPS32R2 := $(shell echo | $(CC) -dM -E - |grep _MIPS_ARCH_MIPS32R2)
 ifneq ($(HAS_MIPS32R2),)
