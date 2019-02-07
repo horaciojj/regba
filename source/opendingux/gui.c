@@ -30,6 +30,9 @@
 #define COLOR_ERROR_TEXT       RGB888_TO_RGB565(255,  64,  64)
 #define COLOR_ERROR_OUTLINE    RGB888_TO_RGB565( 80,   0,   0)
 
+
+void* CurrentScreen;
+
 // -- Shorthand for creating menu entries --
 
 #define MENU_PER_GAME \
@@ -525,13 +528,14 @@ static void DisplayErrorBackgroundFunction(struct Menu* ActiveMenu)
 static void SavedStateMenuDisplayData(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)
 {
 	// PrintStringOutline("Preview", COLOR_INACTIVE_TEXT, COLOR_INACTIVE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") * 2, GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") + 2, LEFT, TOP);
-	DefaultDisplayDataFunction(ActiveMenu, ActiveMenuEntry);
 
 	gba_render_half((uint16_t*) OutputSurface->pixels, (uint16_t*) ActiveMenu->UserData,
 		GCW0_SCREEN_WIDTH - 42 - GBA_SCREEN_WIDTH / 2,
 		GetRenderedHeight(" ") * 3 + 9,
 		GBA_SCREEN_WIDTH * sizeof(uint16_t),
 		OutputSurface->pitch);
+
+	DefaultDisplayDataFunction(ActiveMenu, ActiveMenuEntry);
 }
 
 static void SavedStateSelectionDisplayValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntry* ActiveMenuEntry, uint32_t Position)
@@ -917,7 +921,7 @@ static void ActionSavedStateWrite(struct Menu** ActiveMenu, uint32_t* ActiveMenu
 	}
 	
 	// 2. If the file didn't exist or the user wanted to overwrite it, save.
-	uint32_t ret = save_state(SelectedState, MainMenu.UserData /* preserved screenshot */);
+	uint32_t ret = save_state(SelectedState, CurrentScreen /* preserved screenshot */);
 	if (ret != 1)
 	{
 		if (errno != 0)
@@ -1415,7 +1419,7 @@ static struct MenuEntry SavedStateMenu_Write = {
 	.Target = &SelectedState,
 	.ChoiceCount = 100,
 	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
-	.DisplayValueFunction = SavedStateSelectionDisplayValue
+	// .DisplayValueFunction = SavedStateSelectionDisplayValue
 };
 
 static struct MenuEntry SavedStateMenu_Delete = {
@@ -1490,22 +1494,15 @@ static struct Menu PerGameMainMenu = {
 	.AlternateVersion = &SettingsMenu,
 	.Entries = { &PerGameMainMenu_Display, &PerGameMainMenu_Input, &PerGameMainMenu_Hotkey, NULL }
 };
+
 struct Menu MainMenu = {
 	.Parent = NULL, .Title = "Main Menu",
-	.AlternateVersion = &MainMenu,
-	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &MainMenu_Exit, NULL },
-
+	.AlternateVersion = &PerGameMainMenu,
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
+	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &Strut, &MainMenu_Exit, NULL },
+
 };
-
-
-
-
-	// .Entries = { &SavedStateMenu_SelectedState, &Strut, &SavedStateMenu_Read, &SavedStateMenu_Write, &SavedStateMenu_Delete, NULL }
-
-
-
 
 // -- Settings --
 
@@ -1513,11 +1510,6 @@ static struct Menu SettingsMenu = {
 	.Parent = &MainMenu, .Title = "Settings",
 	.AlternateVersion = &PerGameMainMenu,
 	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &PerGame_Settings, &Strut, &MainMenu_Debug, NULL }
-};
-
-static struct Menu PergameSettingsMenu = {
-	.Parent = &MainMenu, .Title = "Settings",
-	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &MainMenu_Debug, NULL }
 };
 
 /* Do not make this the active menu */
@@ -1530,7 +1522,7 @@ static struct Menu ErrorScreen = {
 u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 {
 	SDL_PauseAudio(SDL_ENABLE);
-	MainMenu.UserData = copy_screen();
+	CurrentScreen = copy_screen();
 	ScaleModeUnapplied();
 
 	// Avoid entering the menu with menu keys pressed (namely the one bound to
@@ -1543,9 +1535,9 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 	SetMenuResolution();
 
 	struct Menu *ActiveMenu = &MainMenu, *PreviousMenu = ActiveMenu;
-	if (MainMenu.InitFunction != NULL)
+	if (ActiveMenu->InitFunction != NULL)
 	{
-		(*(MainMenu.InitFunction))(&ActiveMenu);
+		(*(ActiveMenu->InitFunction))(&ActiveMenu);
 		while (PreviousMenu != ActiveMenu)
 		{
 			if (PreviousMenu->EndFunction != NULL)
@@ -1718,7 +1710,8 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 	timespec Now;
 	clock_gettime(CLOCK_MONOTONIC, &Now);
 	Stats.LastFPSCalculationTime = Now;
-	if (MainMenu.UserData != NULL)
-		free(MainMenu.UserData);
+	if (CurrentScreen != NULL) free(CurrentScreen);
+	if (MainMenu.UserData != NULL) free(MainMenu.UserData);
+
 	return 0;
 }
