@@ -80,6 +80,8 @@ static struct Menu InputMenu;
 static struct Menu HotkeyMenu;
 static struct Menu ErrorScreen;
 static struct Menu DebugMenu;
+static struct Menu SettingsMenu;
+static struct Menu PreGameSettingsMenu;
 
 /*
  * A strut is an invisible line that cannot receive the focus, does not
@@ -224,7 +226,7 @@ static void DefaultDisplayNameFunction(struct MenuEntry* DrawnMenuEntry, struct 
 	bool IsActive = (DrawnMenuEntry == ActiveMenuEntry);
 	uint16_t TextColor = IsActive ? COLOR_ACTIVE_TEXT : COLOR_INACTIVE_TEXT;
 	uint16_t OutlineColor = IsActive ? COLOR_ACTIVE_OUTLINE : COLOR_INACTIVE_OUTLINE;
-	PrintStringOutline(DrawnMenuEntry->Name, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, LEFT, TOP);
+	PrintStringOutline(DrawnMenuEntry->Name, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 42, GetRenderedHeight(" ") * (Position + 2) + 7, GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, LEFT, TOP);
 }
 
 static void print_u64(char* Result, uint64_t Value)
@@ -309,7 +311,7 @@ static void DefaultDisplayValueFunction(struct MenuEntry* DrawnMenuEntry, struct
 		bool IsActive = (DrawnMenuEntry == ActiveMenuEntry);
 		uint16_t TextColor = Error ? COLOR_ERROR_TEXT : (IsActive ? COLOR_ACTIVE_TEXT : COLOR_INACTIVE_TEXT);
 		uint16_t OutlineColor = Error ? COLOR_ERROR_OUTLINE : (IsActive ? COLOR_ACTIVE_OUTLINE : COLOR_INACTIVE_OUTLINE);
-		PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, RIGHT, TOP);
+		PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2) + 7, GCW0_SCREEN_WIDTH - 42, GetRenderedHeight(" ") + 2, RIGHT, TOP);
 	}
 }
 
@@ -351,8 +353,8 @@ static void DisplayPerGameTitleFunction(struct Menu* ActiveMenu)
 	char ForGame[MAX_PATH * 2];
 	char FileNameNoExt[MAX_PATH + 1];
 	GetFileNameNoExtension(FileNameNoExt, CurrentGamePath);
-	sprintf(ForGame, "for %s", FileNameNoExt);
-	PrintStringOutline(ForGame, COLOR_TITLE_TEXT, COLOR_TITLE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" "), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, CENTER, TOP);
+	sprintf(ForGame, "%s", FileNameNoExt);
+	PrintStringOutline(ForGame, COLOR_TITLE_TEXT, COLOR_TITLE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, 24, GetRenderedHeight(" ") + 4, GCW0_SCREEN_WIDTH - 48, GetRenderedHeight(" ") + 2, CENTER, TOP);
 }
 
 void DefaultLoadFunction(struct MenuEntry* ActiveMenuEntry, char* Value)
@@ -497,7 +499,7 @@ static void DisplayButtonMappingValue(struct MenuEntry* DrawnMenuEntry, struct M
 	bool IsActive = (DrawnMenuEntry == ActiveMenuEntry);
 	uint16_t TextColor = Valid ? (IsActive ? COLOR_ACTIVE_TEXT : COLOR_INACTIVE_TEXT) : COLOR_ERROR_TEXT;
 	uint16_t OutlineColor = Valid ? (IsActive ? COLOR_ACTIVE_OUTLINE : COLOR_INACTIVE_OUTLINE) : COLOR_ERROR_OUTLINE;
-	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, RIGHT, TOP);
+	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2) + 7, GCW0_SCREEN_WIDTH - 42, GetRenderedHeight(" ") + 2, RIGHT, TOP);
 }
 
 static void DisplayHotkeyValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntry* ActiveMenuEntry, uint32_t Position)
@@ -508,7 +510,7 @@ static void DisplayHotkeyValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntr
 	bool IsActive = (DrawnMenuEntry == ActiveMenuEntry);
 	uint16_t TextColor = IsActive ? COLOR_ACTIVE_TEXT : COLOR_INACTIVE_TEXT;
 	uint16_t OutlineColor = IsActive ? COLOR_ACTIVE_OUTLINE : COLOR_INACTIVE_OUTLINE;
-	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2), GCW0_SCREEN_WIDTH, GetRenderedHeight(" ") + 2, RIGHT, TOP);
+	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2) + 7, GCW0_SCREEN_WIDTH - 42, GetRenderedHeight(" ") + 2, RIGHT, TOP);
 }
 
 static void DisplayErrorBackgroundFunction(struct Menu* ActiveMenu)
@@ -522,26 +524,25 @@ static void DisplayErrorBackgroundFunction(struct Menu* ActiveMenu)
 
 static void SavedStateMenuDisplayData(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)
 {
-	PrintStringOutline("Preview", COLOR_INACTIVE_TEXT, COLOR_INACTIVE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") * 2, GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") + 2, LEFT, TOP);
+	// PrintStringOutline("Preview", COLOR_INACTIVE_TEXT, COLOR_INACTIVE_OUTLINE, OutputSurface->pixels, OutputSurface->pitch, GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") * 2, GBA_SCREEN_WIDTH / 2, GetRenderedHeight(" ") + 2, LEFT, TOP);
+	DefaultDisplayDataFunction(ActiveMenu, ActiveMenuEntry);
 
 	gba_render_half((uint16_t*) OutputSurface->pixels, (uint16_t*) ActiveMenu->UserData,
-		GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2,
-		GetRenderedHeight(" ") * 3 + 1,
+		GCW0_SCREEN_WIDTH - 42 - GBA_SCREEN_WIDTH / 2,
+		GetRenderedHeight(" ") * 3 + 9,
 		GBA_SCREEN_WIDTH * sizeof(uint16_t),
 		OutputSurface->pitch);
-
-	DefaultDisplayDataFunction(ActiveMenu, ActiveMenuEntry);
 }
 
 static void SavedStateSelectionDisplayValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntry* ActiveMenuEntry, uint32_t Position)
 {
 	char Value[11];
-	sprintf(Value, "%" PRIu32, *(uint32_t*) DrawnMenuEntry->Target + 1);
+	sprintf(Value, "#%" PRIu32, *(uint32_t*) DrawnMenuEntry->Target + 1);
 
 	bool IsActive = (DrawnMenuEntry == ActiveMenuEntry);
 	uint16_t TextColor = IsActive ? COLOR_ACTIVE_TEXT : COLOR_INACTIVE_TEXT;
 	uint16_t OutlineColor = IsActive ? COLOR_ACTIVE_OUTLINE : COLOR_INACTIVE_OUTLINE;
-	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2), GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2 - 16, GetRenderedHeight(" ") + 2, RIGHT, TOP);
+	PrintStringOutline(Value, TextColor, OutlineColor, OutputSurface->pixels, OutputSurface->pitch, 0, GetRenderedHeight(" ") * (Position + 2) + 7, GCW0_SCREEN_WIDTH - 42, GetRenderedHeight(" ") + 2, RIGHT, TOP);
 }
 
 static void SavedStateUpdatePreview(struct Menu* ActiveMenu)
@@ -799,8 +800,7 @@ static void ActionSetMapping(struct Menu** ActiveMenu, uint32_t* ActiveMenuEntry
 {
 	char Text[256];
 	bool Valid;
-	sprintf(Text, "Setting binding for %s\nCurrently %s\n"
-		"Press the new button or two at once to leave the binding alone.",
+	sprintf(Text, "Button: %s\nCurrent: %s\n\nPress the new button to set\nPress two buttons to cancel",
 		(*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Name,
 		GetButtonText(*(uint32_t*) (*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Target, &Valid));
 
@@ -818,8 +818,7 @@ static void ActionSetOrClearMapping(struct Menu** ActiveMenu, uint32_t* ActiveMe
 {
 	char Text[256];
 	bool Valid;
-	sprintf(Text, "Setting binding for %s\nCurrently %s\n"
-		"Press the new button or two at once to clear the binding.",
+	sprintf(Text, "Button: %s\nCurrent: %s\n\nPress the new button to set\nPress two buttons to clear",
 		(*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Name,
 		GetButtonText(*(uint32_t*) (*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Target, &Valid));
 
@@ -839,8 +838,7 @@ static void ActionSetHotkey(struct Menu** ActiveMenu, uint32_t* ActiveMenuEntryI
 	char Text[256];
 	char Current[256];
 	GetButtonsText(*(uint32_t*) (*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Target, Current);
-	sprintf(Text, "Setting hotkey binding for %s\nCurrently %s\n"
-		"Press the new buttons or B to leave the hotkey binding alone.",
+	sprintf(Text, "Hotkey: %s\nCurrent: %s\n\nPress the new button to set\nPress B cancel",
 		(*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Name,
 		Current);
 
@@ -854,8 +852,7 @@ static void ActionSetOrClearHotkey(struct Menu** ActiveMenu, uint32_t* ActiveMen
 	char Text[256];
 	char Current[256];
 	GetButtonsText(*(uint32_t*) (*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Target, Current);
-	sprintf(Text, "Setting hotkey binding for %s\nCurrently %s\n"
-		"Press the new buttons or B to clear the hotkey binding.",
+	sprintf(Text, "Hotkey: %s\nCurrent: %s\n\nPress the new button to set\nPress B to clear",
 		(*ActiveMenu)->Entries[*ActiveMenuEntryIndex]->Name,
 		Current);
 
@@ -914,7 +911,7 @@ static void ActionSavedStateWrite(struct Menu** ActiveMenu, uint32_t* ActiveMenu
 	{
 		FILE_CLOSE(dummy);
 		char Temp[1024];
-		sprintf(Temp, "Do you want to overwrite saved state #%" PRIu32 "?\n[A] = Yes  Others = No", SelectedState + 1);
+		sprintf(Temp, "Overwrite saved state #%" PRIu32 "?\n[A] = Yes  Others = No", SelectedState + 1);
 		if (!GrabYesOrNo(*ActiveMenu, Temp))
 			return;
 	}
@@ -942,7 +939,7 @@ static void ActionSavedStateDelete(struct Menu** ActiveMenu, uint32_t* ActiveMen
 		return;
 	}
 	char Temp[1024];
-	sprintf(Temp, "Do you want to delete saved state #%" PRIu32 "?\n[A] = Yes  Others = No", SelectedState + 1);
+	sprintf(Temp, "Delete saved state #%" PRIu32 "?\n[A] = Yes  Others = No", SelectedState + 1);
 	if (!GrabYesOrNo(*ActiveMenu, Temp))
 		return;
 	
@@ -1001,7 +998,7 @@ static struct Menu NativeCodeMenu = {
 };
 
 static struct MenuEntry DebugMenu_NativeCode = {
-	ENTRY_SUBMENU("Native code statistics...", &NativeCodeMenu)
+	ENTRY_SUBMENU("Native code statistics", &NativeCodeMenu)
 };
 
 // -- Debug > Metadata stats --
@@ -1040,7 +1037,7 @@ static struct Menu MetadataMenu = {
 };
 
 static struct MenuEntry DebugMenu_Metadata = {
-	ENTRY_SUBMENU("Metadata clear statistics...", &MetadataMenu)
+	ENTRY_SUBMENU("Metadata clear statistics", &MetadataMenu)
 };
 
 // -- Debug > Execution stats --
@@ -1085,7 +1082,7 @@ static struct Menu ExecutionMenu = {
 };
 
 static struct MenuEntry DebugMenu_Execution = {
-	ENTRY_SUBMENU("Execution statistics...", &ExecutionMenu)
+	ENTRY_SUBMENU("Execution statistics", &ExecutionMenu)
 };
 
 // -- Debug > Code reuse stats --
@@ -1113,7 +1110,7 @@ static struct Menu ReuseMenu = {
 };
 
 static struct MenuEntry DebugMenu_Reuse = {
-	ENTRY_SUBMENU("Code reuse statistics...", &ReuseMenu)
+	ENTRY_SUBMENU("Code reuse statistics", &ReuseMenu)
 };
 #endif
 
@@ -1135,18 +1132,18 @@ static struct Menu ROMInfoMenu = {
 };
 
 static struct MenuEntry DebugMenu_ROMInfo = {
-	ENTRY_SUBMENU("ROM information...", &ROMInfoMenu)
+	ENTRY_SUBMENU("ROM information", &ROMInfoMenu)
 };
 
 static struct MenuEntry DebugMenu_VersionInfo = {
-	.Kind = KIND_CUSTOM, .Name = "ReGBA version information...",
+	.Kind = KIND_CUSTOM, .Name = "ReGBA version information",
 	.ButtonEnterFunction = &ActionShowVersion
 };
 
 // -- Debug --
 
 static struct Menu DebugMenu = {
-	.Parent = &MainMenu, .Title = "Performance and debugging",
+	.Parent = &SettingsMenu, .Title = "Performance and debugging",
 	.Entries = { &DebugMenu_NativeCode, &DebugMenu_Metadata, &DebugMenu_Execution
 #ifdef PERFORMANCE_IMPACTING_STATISTICS
 	, &DebugMenu_Reuse
@@ -1157,11 +1154,11 @@ static struct Menu DebugMenu = {
 // -- Display Settings --
 
 static struct MenuEntry PerGameDisplayMenu_BootSource = {
-	ENTRY_OPTION("boot_from", "Boot from", &PerGameBootFromBIOS),
+	ENTRY_OPTION("boot_from", "Boot", &PerGameBootFromBIOS),
 	.ChoiceCount = 3, .Choices = { { "No override", "" }, { "Cartridge ROM", "cartridge" }, { "GBA BIOS", "gba_bios" } }
 };
 static struct MenuEntry DisplayMenu_BootSource = {
-	ENTRY_OPTION("boot_from", "Boot from", &BootFromBIOS),
+	ENTRY_OPTION("boot_from", "Boot", &BootFromBIOS),
 	.ChoiceCount = 2, .Choices = { { "Cartridge ROM", "cartridge" }, { "GBA BIOS", "gba_bios" } }
 };
 
@@ -1175,29 +1172,29 @@ static struct MenuEntry DisplayMenu_FPSCounter = {
 };
 
 static struct MenuEntry PerGameDisplayMenu_ScaleMode = {
-	ENTRY_OPTION("image_size", "Image scaling", &PerGameScaleMode),
+	ENTRY_OPTION("image_size", "Scaling", &PerGameScaleMode),
 	.ChoiceCount = 9, .Choices = { { "No override", "" }, { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
 };
 static struct MenuEntry DisplayMenu_ScaleMode = {
-	ENTRY_OPTION("image_size", "Image scaling", &ScaleMode),
+	ENTRY_OPTION("image_size", "Scaling", &ScaleMode),
 	.ChoiceCount = 8, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
 };
 
 static struct MenuEntry PerGameDisplayMenu_Frameskip = {
-	ENTRY_OPTION("frameskip", "Frame skipping", &PerGameUserFrameskip),
+	ENTRY_OPTION("frameskip", "Frameskip", &PerGameUserFrameskip),
 	.ChoiceCount = 6, .Choices = { { "No override", "" }, { "Automatic", "auto" }, { "0 (~60 FPS)", "0" }, { "1 (~30 FPS)", "1" }, { "2 (~20 FPS)", "2" }, { "3 (~15 FPS)", "3" } }
 };
 static struct MenuEntry DisplayMenu_Frameskip = {
-	ENTRY_OPTION("frameskip", "Frame skipping", &UserFrameskip),
+	ENTRY_OPTION("frameskip", "Frameskip", &UserFrameskip),
 	.ChoiceCount = 5, .Choices = { { "Automatic", "auto" }, { "0 (~60 FPS)", "0" }, { "1 (~30 FPS)", "1" }, { "2 (~20 FPS)", "2" }, { "3 (~15 FPS)", "3" } }
 };
 
 static struct MenuEntry PerGameDisplayMenu_FastForwardTarget = {
-	ENTRY_OPTION("fast_forward_target", "Fast-forward target", &PerGameFastForwardTarget),
+	ENTRY_OPTION("fast_forward_target", "Fast-forward", &PerGameFastForwardTarget),
 	.ChoiceCount = 6, .Choices = { { "No override", "" }, { "2x (~120 FPS)", "2" }, { "3x (~180 FPS)", "3" }, { "4x (~240 FPS)", "4" }, { "5x (~300 FPS)", "5" }, { "6x (~360 FPS)", "6" } }
 };
 static struct MenuEntry DisplayMenu_FastForwardTarget = {
-	ENTRY_OPTION("fast_forward_target", "Fast-forward target", &FastForwardTarget),
+	ENTRY_OPTION("fast_forward_target", "Fast-forward", &FastForwardTarget),
 	.ChoiceCount = 5, .Choices = { { "2x (~120 FPS)", "2" }, { "3x (~180 FPS)", "3" }, { "4x (~240 FPS)", "4" }, { "5x (~300 FPS)", "5" }, { "6x (~360 FPS)", "6" } }
 };
 
@@ -1205,12 +1202,12 @@ static struct Menu PerGameDisplayMenu = {
 	.Parent = &PerGameMainMenu, .Title = "Display settings",
 	MENU_PER_GAME,
 	.AlternateVersion = &DisplayMenu,
-	.Entries = { &PerGameDisplayMenu_BootSource, &PerGameDisplayMenu_FPSCounter, &PerGameDisplayMenu_ScaleMode, &PerGameDisplayMenu_Frameskip, &PerGameDisplayMenu_FastForwardTarget, NULL }
+	.Entries = { &PerGameDisplayMenu_ScaleMode, &PerGameDisplayMenu_Frameskip, &PerGameDisplayMenu_FPSCounter, &PerGameDisplayMenu_FastForwardTarget, &PerGameDisplayMenu_BootSource, NULL }
 };
 static struct Menu DisplayMenu = {
-	.Parent = &MainMenu, .Title = "Display settings",
+	.Parent = &SettingsMenu, .Title = "Display settings",
 	.AlternateVersion = &PerGameDisplayMenu,
-	.Entries = { &DisplayMenu_BootSource, &DisplayMenu_FPSCounter, &DisplayMenu_ScaleMode, &DisplayMenu_Frameskip, &DisplayMenu_FastForwardTarget, NULL }
+	.Entries = { &DisplayMenu_ScaleMode, &DisplayMenu_Frameskip, &DisplayMenu_FPSCounter, &DisplayMenu_FastForwardTarget, &DisplayMenu_BootSource, NULL }
 };
 
 // -- Input Settings --
@@ -1269,20 +1266,20 @@ static struct MenuEntry InputMenu_R = {
 };
 
 static struct MenuEntry PerGameInputMenu_RapidA = {
-	ENTRY_OPTION("rapid_a", "Rapid-fire A", &PerGameKeypadRemapping[10]),
+	ENTRY_OPTION("rapid_a", "Turbo A", &PerGameKeypadRemapping[10]),
 	ENTRY_OPTIONAL_MAPPING
 };
 static struct MenuEntry InputMenu_RapidA = {
-	ENTRY_OPTION("rapid_a", "Rapid-fire A", &KeypadRemapping[10]),
+	ENTRY_OPTION("rapid_a", "Turbo A", &KeypadRemapping[10]),
 	ENTRY_OPTIONAL_MAPPING
 };
 
 static struct MenuEntry PerGameInputMenu_RapidB = {
-	ENTRY_OPTION("rapid_b", "Rapid-fire B", &PerGameKeypadRemapping[11]),
+	ENTRY_OPTION("rapid_b", "Turbo B", &PerGameKeypadRemapping[11]),
 	ENTRY_OPTIONAL_MAPPING
 };
 static struct MenuEntry InputMenu_RapidB = {
-	ENTRY_OPTION("rapid_b", "Rapid-fire B", &KeypadRemapping[11]),
+	ENTRY_OPTION("rapid_b", "Turbo B", &KeypadRemapping[11]),
 	ENTRY_OPTIONAL_MAPPING
 };
 
@@ -1310,16 +1307,16 @@ static struct Menu PerGameInputMenu = {
 	.Parent = &PerGameMainMenu, .Title = "Input settings",
 	MENU_PER_GAME,
 	.AlternateVersion = &InputMenu,
-	.Entries = { &PerGameInputMenu_A, &PerGameInputMenu_B, &PerGameInputMenu_Start, &PerGameInputMenu_Select, &PerGameInputMenu_L, &PerGameInputMenu_R, &PerGameInputMenu_RapidA, &PerGameInputMenu_RapidB
+	.Entries = { &PerGameInputMenu_A, &PerGameInputMenu_B, &PerGameInputMenu_L, &PerGameInputMenu_R, &PerGameInputMenu_Start, &PerGameInputMenu_Select, &PerGameInputMenu_RapidA, &PerGameInputMenu_RapidB
 #ifdef GCW_ZERO
 	, &Strut, &PerGameInputMenu_AnalogSensitivity, &PerGameInputMenu_AnalogAction
 #endif
 	, NULL }
 };
 static struct Menu InputMenu = {
-	.Parent = &MainMenu, .Title = "Input settings",
+	.Parent = &SettingsMenu, .Title = "Input settings",
 	.AlternateVersion = &PerGameInputMenu,
-	.Entries = { &InputMenu_A, &InputMenu_B, &InputMenu_Start, &InputMenu_Select, &InputMenu_L, &InputMenu_R, &InputMenu_RapidA, &InputMenu_RapidB
+	.Entries = { &InputMenu_A, &InputMenu_B, &InputMenu_L, &InputMenu_R, &InputMenu_Start, &InputMenu_Select, &InputMenu_RapidA, &InputMenu_RapidB
 #ifdef GCW_ZERO
 	, &Strut, &InputMenu_AnalogSensitivity, &InputMenu_AnalogAction
 #endif
@@ -1329,11 +1326,11 @@ static struct Menu InputMenu = {
 // -- Hotkeys --
 
 static struct MenuEntry PerGameHotkeyMenu_FastForward = {
-	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward while held", &PerGameHotkeys[0]),
+	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward (hold)", &PerGameHotkeys[0]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_FastForward = {
-	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward while held", &Hotkeys[0]),
+	ENTRY_OPTION("hotkey_fast_forward", "Fast-forward (hold)", &Hotkeys[0]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
@@ -1345,29 +1342,29 @@ static struct MenuEntry HotkeyMenu_Menu = {
 #endif
 
 static struct MenuEntry PerGameHotkeyMenu_FastForwardToggle = {
-	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward toggle", &PerGameHotkeys[2]),
+	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward (toggle)", &PerGameHotkeys[2]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_FastForwardToggle = {
-	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward toggle", &Hotkeys[2]),
+	ENTRY_OPTION("hotkey_fast_forward_toggle", "Fast-forward (toggle)", &Hotkeys[2]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
 static struct MenuEntry PerGameHotkeyMenu_QuickLoadState = {
-	ENTRY_OPTION("hotkey_quick_load_state", "Quick load state #1", &PerGameHotkeys[3]),
+	ENTRY_OPTION("hotkey_quick_load_state", "Quick load #1", &PerGameHotkeys[3]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_QuickLoadState = {
-	ENTRY_OPTION("hotkey_quick_load_state", "Quick load state #1", &Hotkeys[3]),
+	ENTRY_OPTION("hotkey_quick_load_state", "Quick load #1", &Hotkeys[3]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
 static struct MenuEntry PerGameHotkeyMenu_QuickSaveState = {
-	ENTRY_OPTION("hotkey_quick_save_state", "Quick save state #1", &PerGameHotkeys[4]),
+	ENTRY_OPTION("hotkey_quick_save_state", "Quick save #1", &PerGameHotkeys[4]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 static struct MenuEntry HotkeyMenu_QuickSaveState = {
-	ENTRY_OPTION("hotkey_quick_save_state", "Quick save state #1", &Hotkeys[4]),
+	ENTRY_OPTION("hotkey_quick_save_state", "Quick save #1", &Hotkeys[4]),
 	ENTRY_OPTIONAL_HOTKEY
 };
 
@@ -1378,7 +1375,7 @@ static struct Menu PerGameHotkeyMenu = {
 	.Entries = { &Strut, &PerGameHotkeyMenu_FastForward, &PerGameHotkeyMenu_FastForwardToggle, &PerGameHotkeyMenu_QuickLoadState, &PerGameHotkeyMenu_QuickSaveState, NULL }
 };
 static struct Menu HotkeyMenu = {
-	.Parent = &MainMenu, .Title = "Hotkeys",
+	.Parent = &SettingsMenu, .Title = "Hotkeys",
 	.AlternateVersion = &PerGameHotkeyMenu,
 	.Entries = {
 #if !defined GCW_ZERO
@@ -1393,7 +1390,7 @@ static struct Menu HotkeyMenu = {
 // -- Saved States --
 
 static struct MenuEntry SavedStateMenu_SelectedState = {
-	.Kind = KIND_CUSTOM, .Name = "Save slot #", .PersistentName = "",
+	.Kind = KIND_CUSTOM, .Name = "Save slot", .PersistentName = "",
 	.Target = &SelectedState,
 	.ChoiceCount = 100,
 	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
@@ -1401,22 +1398,33 @@ static struct MenuEntry SavedStateMenu_SelectedState = {
 };
 
 static struct MenuEntry SavedStateMenu_Read = {
-	.Kind = KIND_CUSTOM, .Name = "Load from selected slot",
-	.ButtonEnterFunction = ActionSavedStateRead
+	.Kind = KIND_CUSTOM, .Name = "Load state",
+	.ButtonEnterFunction = ActionSavedStateRead,
+	.PersistentName = "",
+	.Target = &SelectedState,
+	.ChoiceCount = 100,
+	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
+	.DisplayValueFunction = SavedStateSelectionDisplayValue
+
 };
 
 static struct MenuEntry SavedStateMenu_Write = {
-	.Kind = KIND_CUSTOM, .Name = "Save to selected slot",
-	.ButtonEnterFunction = ActionSavedStateWrite
+	.Kind = KIND_CUSTOM, .Name = "Save state",
+	.ButtonEnterFunction = ActionSavedStateWrite,
+	.PersistentName = "",
+	.Target = &SelectedState,
+	.ChoiceCount = 100,
+	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
+	.DisplayValueFunction = SavedStateSelectionDisplayValue
 };
 
 static struct MenuEntry SavedStateMenu_Delete = {
-	.Kind = KIND_CUSTOM, .Name = "Delete selected state",
+	.Kind = KIND_CUSTOM, .Name = "Delete state",
 	.ButtonEnterFunction = ActionSavedStateDelete
 };
 
 static struct Menu SavedStateMenu = {
-	.Parent = &MainMenu, .Title = "Saved states",
+	.Parent = &MainMenu, .Title = "Save states",
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
 	.Entries = { &SavedStateMenu_SelectedState, &Strut, &SavedStateMenu_Read, &SavedStateMenu_Write, &SavedStateMenu_Delete, NULL }
@@ -1425,41 +1433,49 @@ static struct Menu SavedStateMenu = {
 // -- Main Menu --
 
 static struct MenuEntry PerGameMainMenu_Display = {
-	ENTRY_SUBMENU("Display settings...", &PerGameDisplayMenu)
+	ENTRY_SUBMENU("Display", &PerGameDisplayMenu)
 };
 static struct MenuEntry MainMenu_Display = {
-	ENTRY_SUBMENU("Display settings...", &DisplayMenu)
+	ENTRY_SUBMENU("Display", &DisplayMenu)
 };
 
 static struct MenuEntry PerGameMainMenu_Input = {
-	ENTRY_SUBMENU("Input settings...", &PerGameInputMenu)
+	ENTRY_SUBMENU("Input", &PerGameInputMenu)
 };
 static struct MenuEntry MainMenu_Input = {
-	ENTRY_SUBMENU("Input settings...", &InputMenu)
+	ENTRY_SUBMENU("Input", &InputMenu)
 };
 
 static struct MenuEntry PerGameMainMenu_Hotkey = {
-	ENTRY_SUBMENU("Hotkeys...", &PerGameHotkeyMenu)
+	ENTRY_SUBMENU("Hotkeys", &PerGameHotkeyMenu)
 };
 static struct MenuEntry MainMenu_Hotkey = {
-	ENTRY_SUBMENU("Hotkeys...", &HotkeyMenu)
+	ENTRY_SUBMENU("Hotkeys", &HotkeyMenu)
 };
 
 static struct MenuEntry MainMenu_SavedStates = {
-	ENTRY_SUBMENU("Saved states...", &SavedStateMenu)
+	ENTRY_SUBMENU("Saved states", &SavedStateMenu)
 };
 
 static struct MenuEntry MainMenu_Debug = {
-	ENTRY_SUBMENU("Performance and debugging...", &DebugMenu)
+	ENTRY_SUBMENU("Debugging", &DebugMenu)
+};
+
+static struct MenuEntry MainMenu_Settings = {
+	ENTRY_SUBMENU("Settings", &SettingsMenu)
+};
+
+static struct MenuEntry PerGame_Settings = {
+	ENTRY_SUBMENU("Game Settings", &PerGameMainMenu)
 };
 
 static struct MenuEntry MainMenu_Reset = {
-	.Kind = KIND_CUSTOM, .Name = "Reset the game",
+	.Kind = KIND_CUSTOM, .Name = "Reset",
 	.ButtonEnterFunction = &ActionReset
 };
 
 static struct MenuEntry MainMenu_Return = {
-	.Kind = KIND_CUSTOM, .Name = "Return to the game",
+	.Kind = KIND_CUSTOM, .Name = "Return to game",
 	.ButtonEnterFunction = &ActionReturn
 };
 
@@ -1469,15 +1485,39 @@ static struct MenuEntry MainMenu_Exit = {
 };
 
 static struct Menu PerGameMainMenu = {
-	.Parent = NULL, .Title = "ReGBA Main Menu",
+	.Parent = &SettingsMenu, .Title = "Game Settings",
 	MENU_PER_GAME,
-	.AlternateVersion = &MainMenu,
-	.Entries = { &PerGameMainMenu_Display, &PerGameMainMenu_Input, &PerGameMainMenu_Hotkey, &Strut, &Strut, &Strut, &Strut, &Strut, &Strut, &MainMenu_Reset, &MainMenu_Return, &MainMenu_Exit, NULL }
+	.AlternateVersion = &SettingsMenu,
+	.Entries = { &PerGameMainMenu_Display, &PerGameMainMenu_Input, &PerGameMainMenu_Hotkey, NULL }
 };
 struct Menu MainMenu = {
-	.Parent = NULL, .Title = "ReGBA Main Menu",
+	.Parent = NULL, .Title = "Main Menu",
+	.AlternateVersion = &MainMenu,
+	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &MainMenu_Exit, NULL },
+
+	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
+	.DisplayDataFunction = SavedStateMenuDisplayData,
+};
+
+
+
+
+	// .Entries = { &SavedStateMenu_SelectedState, &Strut, &SavedStateMenu_Read, &SavedStateMenu_Write, &SavedStateMenu_Delete, NULL }
+
+
+
+
+// -- Settings --
+
+static struct Menu SettingsMenu = {
+	.Parent = &MainMenu, .Title = "Settings",
 	.AlternateVersion = &PerGameMainMenu,
-	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &MainMenu_SavedStates, &Strut, &Strut, &MainMenu_Debug, &Strut, &MainMenu_Reset, &MainMenu_Return, &MainMenu_Exit, NULL }
+	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &PerGame_Settings, &Strut, &MainMenu_Debug, NULL }
+};
+
+static struct Menu PergameSettingsMenu = {
+	.Parent = &MainMenu, .Title = "Settings",
+	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &MainMenu_Debug, NULL }
 };
 
 /* Do not make this the active menu */

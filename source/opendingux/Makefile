@@ -1,6 +1,6 @@
 TARGET      := data/regba.dge
 
-CHAINPREFIX := /opt/mipsel-linux-uclibc-debug
+CHAINPREFIX := /opt/mipsel-linux-uclibc
 CROSS_COMPILE := $(CHAINPREFIX)/usr/bin/mipsel-linux-
 
 CC          := $(CROSS_COMPILE)gcc
