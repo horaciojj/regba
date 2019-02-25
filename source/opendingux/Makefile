@@ -48,13 +48,14 @@ all: $(TARGET)
 opk: $(TARGET).opk
 
 ipk: $(TARGET)
-	@rm -rf /tmp/.regba-ipk/ && mkdir -p /tmp/.regba-ipk/root/home/retrofw/.gpsp /tmp/.regba-ipk/root/home/retrofw/emus/regba /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
+	@rm -rf /tmp/.regba-ipk/ && mkdir -p /tmp/.regba-ipk/root/home/retrofw/.gpsp /tmp/.regba-ipk/root/home/retrofw/emus/regba /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
 	@cp ../../game_config.txt ../../bios/gba_bios.bin /tmp/.regba-ipk/root/home/retrofw/.gpsp
 	@cp data/regba.dge data/regba.man.txt data/regba.png data/regba-sp-border-silver.png /tmp/.regba-ipk/root/home/retrofw/emus/regba
 	@cp data/regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators
-	@cp data/gba.regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/systems
+	@cp data/gba.regba.lnk /tmp/.regba-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
 	@sed "s/^Version:.*/Version: $$(date +%Y%m%d)/" data/control > /tmp/.regba-ipk/control
-	@tar --owner=0 --group=0 -czvf /tmp/.regba-ipk/control.tar.gz -C /tmp/.regba-ipk/ control
+	@cp data/conffiles /tmp/.regba-ipk/
+	@tar --owner=0 --group=0 -czvf /tmp/.regba-ipk/control.tar.gz -C /tmp/.regba-ipk/ control conffiles
 	@tar --owner=0 --group=0 -czvf /tmp/.regba-ipk/data.tar.gz -C /tmp/.regba-ipk/root/ .
 	@echo 2.0 > /tmp/.regba-ipk/debian-binary
 	@ar r data/regba.ipk /tmp/.regba-ipk/control.tar.gz /tmp/.regba-ipk/data.tar.gz /tmp/.regba-ipk/debian-binary
