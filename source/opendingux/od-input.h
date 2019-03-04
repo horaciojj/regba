@@ -85,6 +85,10 @@ extern uint32_t AnalogAction;
 // The value then goes to FastForwardFrameskip and is decremented until 0.
 extern uint_fast8_t FastForwardFrameskipControl;
 
+
+extern uint32_t HotkeyOpenMenu;
+
+
 /*
  * Gets the current value of the analog horizontal axis.
  * Returns:

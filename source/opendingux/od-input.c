@@ -30,6 +30,8 @@ uint32_t AnalogSensitivity = 0; // require 32256/32767 of the axis by default
 uint32_t PerGameAnalogAction = 0;
 uint32_t AnalogAction = 0;
 
+uint32_t HotkeyOpenMenu = 0;
+
 uint_fast8_t FastForwardFrameskipControl = 0;
 
 //static SDL_Joystick* Joystick;
@@ -297,23 +299,18 @@ enum ReGBA_Buttons ReGBA_GetPressedButtons()
 	if ((Result & REGBA_BUTTON_UP) && (Result & REGBA_BUTTON_DOWN))
 		Result &= ~REGBA_BUTTON_UP;
 
-	// if (LastButtons & OPENDINGUX_BUTTON_MENU)
-		// Result |= REGBA_BUTTON_MENU;
-
 	if (
-	#if defined GCW_ZERO
-		// Unified emulator menu buttons: Start+Select
-			((LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
-	#else
-		// The ReGBA Menu key should be pressed if ONLY the hotkey bound to it
-		// is pressed on the native device.
-		// This is not in ProcessSpecialKeys because REGBA_BUTTON_MENU needs to
-		// be returned by ReGBA_GetPressedButtons.
+		#if defined GCW_ZERO
+			((HotkeyOpenMenu == 0 || HotkeyOpenMenu == 1) && (LastButtons & OPENDINGUX_BUTTON_MENU)) ||
+			((HotkeyOpenMenu == 0 || HotkeyOpenMenu == 2) && (LastButtons & (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT)) == (OPENDINGUX_BUTTON_START | OPENDINGUX_BUTTON_SELECT))
+		#else
+			// The ReGBA Menu key should be pressed if ONLY the hotkey bound to it
+			// is pressed on the native device.
+			// This is not in ProcessSpecialKeys because REGBA_BUTTON_MENU needs to
+			// be returned by ReGBA_GetPressedButtons.
 			LastButtons == Hotkeys[1]
-	#endif
-		 || (LastButtons & OPENDINGUX_BUTTON_MENU))
-			Result |= REGBA_BUTTON_MENU;
-
+		#endif
+	 ) Result |= REGBA_BUTTON_MENU;
 
 	return Result;
 }
