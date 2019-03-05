@@ -143,6 +143,7 @@ int main(int argc, char *argv[])
   u32 dispstat;
   char load_filename[512];
   char file[MAX_PATH + 1];
+  char rom_path[MAX_PATH + 1];
 
 	// Copy the path of the executable into executable_path
 	if (realpath(argv[0], executable_path) == 0)
@@ -159,6 +160,12 @@ int main(int argc, char *argv[])
 			*LastSlash = '\0';
 		}
 	}
+
+  if (argc > 1 && realpath(argv[1], rom_path) == 0)
+  {
+    rom_path[0] = '\0';
+  }
+
 
 	init_video();
 
@@ -177,22 +184,27 @@ int main(int argc, char *argv[])
 	sprintf(file, "%s/gba_bios.bin", main_path);
 	if(load_bios(file) == -1)
 	{
-		ReGBA_ProgressUpdate(1, 2);
-		sprintf(file, "%s/gba_bios.bin", executable_path);
-		if (load_bios(file) == -1)
-		{
-			ShowErrorScreen("The GBA BIOS was not found in any location. "
-				"You can load one in your home directory's .gpsp "
-				"subdirectory. On this platform, that's:\n%s\nThe file needs "
-				"to be named gba_bios.bin.", main_path);
+    ReGBA_ProgressUpdate(1, 3);
+    sprintf(file, "%s/gba_bios.bin", dirname(rom_path));
+    if (load_bios(file) == -1)
+    {
+  		ReGBA_ProgressUpdate(2, 3);
+  		sprintf(file, "%s/gba_bios.bin", executable_path);
+  		if (load_bios(file) == -1)
+  		{
+  			ShowErrorScreen("The GBA BIOS was not found in any location. "
+  				"You can load one in your home directory's .gpsp "
+  				"subdirectory. On this platform, that's:\n%s\nThe file needs "
+  				"to be named gba_bios.bin.", rom_path);
 
-			error_quit();
-		}
-		else
-			ReGBA_ProgressUpdate(2, 2);
+  			error_quit();
+  		}
+    }
+  		// else
+  			// ReGBA_ProgressUpdate(2, 2);
 	}
-	else
-		ReGBA_ProgressUpdate(2, 2);
+	// else
+	ReGBA_ProgressUpdate(3, 3);
 	ReGBA_ProgressFinalise();
 
 	init_main();
