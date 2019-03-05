@@ -188,20 +188,20 @@ int main(int argc, char *argv[])
     sprintf(file, "%s/gba_bios.bin", dirname(rom_path));
     if (load_bios(file) == -1)
     {
-  		ReGBA_ProgressUpdate(2, 3);
-  		sprintf(file, "%s/gba_bios.bin", executable_path);
-  		if (load_bios(file) == -1)
-  		{
-  			ShowErrorScreen("The GBA BIOS was not found in any location. "
-  				"You can load one in your home directory's .gpsp "
-  				"subdirectory. On this platform, that's:\n%s\nThe file needs "
-  				"to be named gba_bios.bin.", rom_path);
+      ReGBA_ProgressUpdate(2, 3);
+      sprintf(file, "%s/gba_bios.bin", executable_path);
+      if (load_bios(file) == -1)
+      {
+        ShowErrorScreen("The GBA BIOS was not found in any location. "
+          "You can load one in your home directory's .gpsp "
+          "subdirectory. On this platform, that's:\n%s\nThe file needs "
+          "to be named gba_bios.bin.", rom_path);
 
-  			error_quit();
-  		}
+        error_quit();
+      }
     }
-  		// else
-  			// ReGBA_ProgressUpdate(2, 2);
+      // else
+        // ReGBA_ProgressUpdate(2, 2);
 	}
 	// else
 	ReGBA_ProgressUpdate(3, 3);
