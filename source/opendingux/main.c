@@ -166,7 +166,6 @@ int main(int argc, char *argv[])
     rom_path[0] = '\0';
   }
 
-
 	init_video();
 
   // Copy the user's .gpsp directory into main_path
@@ -182,14 +181,22 @@ int main(int argc, char *argv[])
 	// Fall back on the bundled one.
 	ReGBA_ProgressInitialise(FILE_ACTION_LOAD_BIOS);
 	sprintf(file, "%s/gba_bios.bin", main_path);
+
+  if (argc > 1) {
+    sprintf(file, "%s", argv[1]);
+    dirname(file);
+    sprintf(file, "%s/gba_bios.bin", file);
+  }
+
 	if(load_bios(file) == -1)
 	{
     ReGBA_ProgressUpdate(1, 3);
-    sprintf(file, "%s/gba_bios.bin", dirname(rom_path));
+    sprintf(file, "%s/gba_bios.bin", main_path);
+
     if (load_bios(file) == -1)
     {
       ReGBA_ProgressUpdate(2, 3);
-      sprintf(file, "%s/gba_bios.bin", executable_path);
+      sprintf(file, "./gba_bios.bin");
       if (load_bios(file) == -1)
       {
         ShowErrorScreen("The GBA BIOS was not found in any location. "
@@ -200,10 +207,7 @@ int main(int argc, char *argv[])
         error_quit();
       }
     }
-      // else
-        // ReGBA_ProgressUpdate(2, 2);
 	}
-	// else
 	ReGBA_ProgressUpdate(3, 3);
 	ReGBA_ProgressFinalise();
 
