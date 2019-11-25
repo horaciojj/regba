@@ -40,7 +40,7 @@ SDL_Surface *OutputSurface = NULL;
 SDL_Surface *BorderSurface = NULL;
 
 video_scale_type PerGameScaleMode = 0;
-video_scale_type ScaleMode = scaled_aspect;
+video_scale_type ScaleMode = hardware;
 
 #define COLOR_PROGRESS_BACKGROUND   RGB888_TO_RGB565(  0,   0,   0)
 #define COLOR_PROGRESS_TEXT_CONTENT RGB888_TO_RGB565(255, 255, 255)
