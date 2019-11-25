@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=ReGBA
+Comment=GBA Emulator
+Exec=regba.dge
+Icon=regba
+Categories=emulators;
+X-OD-Manual=regba.man.txt
+X-OD-Selector=/home/retrofw/roms/gba
+X-OD-Filter=.zip,.gba
+Terminal=false
+Type=Application
+StartupNotify=true

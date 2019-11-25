@@ -12,3 +12,5 @@ log
 *.log
 *.dge
 *.patch
+*.opk
+doc/
