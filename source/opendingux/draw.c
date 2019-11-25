@@ -1376,7 +1376,7 @@ static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
 {
 	const uint32_t DestSkip = 40;	//(ScreenWidth - GBAWidth) / BitPerPixel =   40
 	uint32_t X, Y;
-	
+
 	Dest += 6420;
 	for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
 	{
@@ -1387,7 +1387,7 @@ static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
 		}
 		Dest += DestSkip;
 	}
-		
+
 }
 
 
@@ -1638,7 +1638,7 @@ u16 *copy_screen()
 }
 
 void blit_to_screen(u16 *src, u32 w, u32 h, u32 dest_x, u32 dest_y)
-{	
+{
   u32 pitch = GBAScreenPitch;
   u16 *dest_ptr = GBAScreen;
   u16 *src_ptr = src;
@@ -1931,12 +1931,12 @@ void ReGBA_ProgressFinalise()
 void ReGBA_VideoFlip()
 {
 	if (SDL_MUSTLOCK(OutputSurface))
-	{		
+	{
 		SDL_UnlockSurface(OutputSurface);
 		SDL_Flip(OutputSurface);
 		SDL_LockSurface(OutputSurface);
 	}
 	else
 		SDL_Flip(OutputSurface);
-		
+
 }
