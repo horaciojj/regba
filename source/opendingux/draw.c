@@ -1565,15 +1565,10 @@ void ReGBA_RenderScreen(void)
 
 		ReGBA_VideoFlip();
 
-		while (true)
+		while (ReGBA_GetAudioSamplesAvailable() > AUDIO_OUTPUT_BUFFER_SIZE * 3 * OUTPUT_FREQUENCY_DIVISOR + (VideoFastForwarded - AudioFastForwarded) * ((int) (SOUND_FREQUENCY / 59.73)))
 		{
-			unsigned int AudioFastForwardedCopy = AudioFastForwarded;
-			unsigned int FramesAhead = (VideoFastForwarded >= AudioFastForwardedCopy)
-				? /* no overflow */ VideoFastForwarded - AudioFastForwardedCopy
-				: /* overflow */    0x100 - (AudioFastForwardedCopy - VideoFastForwarded);
-			uint32_t Quota = AUDIO_OUTPUT_BUFFER_SIZE * 3 * OUTPUT_FREQUENCY_DIVISOR + (uint32_t) (FramesAhead * (SOUND_FREQUENCY / 59.73f));
-			if (ReGBA_GetAudioSamplesAvailable() <= Quota)
-				break;
+			if (AudioFrameskip > 0)
+				AudioFrameskip--;
 			usleep(1000);
 		}
 	}
