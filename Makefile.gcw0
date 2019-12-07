@@ -1,6 +1,6 @@
-TARGET      := data/regba.dge
+TARGET      := regba/regba.elf
 
-CHAINPREFIX := /opt/mipsel-linux-uclibc
+CHAINPREFIX := /opt/gcw0-toolchain
 CROSS_COMPILE := $(CHAINPREFIX)/usr/bin/mipsel-linux-
 
 CC          := $(CROSS_COMPILE)gcc
@@ -10,57 +10,22 @@ SYSROOT     := $(shell $(CC) --print-sysroot)
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-OBJS = ./source/opendingux/main.o
-OBJS += ./source/opendingux/draw.o
-OBJS += ./source/opendingux/port.o
-OBJS += ./source/opendingux/port-asm.o
-OBJS += ./source/opendingux/od-input.o
-OBJS += ./source/video.o
-OBJS += ./source/input.o
-OBJS += ./source/bios.o
-OBJS += ./source/zip.o
-OBJS += ./source/sound.o
-OBJS += ./source/mips/stub.o
-OBJS += ./source/stats.o
-OBJS += ./source/memory.o
-OBJS += ./source/cpu_common.o
-OBJS += ./source/cpu_asm.o
-OBJS += ./source/opendingux/od-sound.o
-OBJS += ./source/sha1.o
-OBJS += ./source/opendingux/imageio.o
-OBJS += ./source/unifont.o
-OBJS += ./source/opendingux/gui.o
-OBJS += ./source/opendingux/od-memory.o
-OBJS += ./source/opendingux/settings.o
+OBJS        := ./source/opendingux/main.o ./source/opendingux/draw.o ./source/opendingux/port.o ./source/opendingux/port-asm.o ./source/opendingux/od-input.o ./source/video.o          \
+              ./source/input.o ./source/bios.o ./source/zip.o ./source/sound.o ./source/mips/stub.o         \
+              ./source/stats.o ./source/memory.o ./source/cpu_common.o ./source/cpu_asm.o ./source/opendingux/od-sound.o  \
+              ./source/sha1.o ./source/opendingux/imageio.o ./source/unifont.o ./source/opendingux/gui.o ./source/opendingux/od-memory.o ./source/opendingux/settings.o
 
-HEADERS = ./source/opendingux/cheats.h
-HEADERS += ./source/common.h
-HEADERS += ./source/cpu_common.h
-HEADERS += ./source/cpu.h
-HEADERS += ./source/opendingux/draw.h
-HEADERS += ./source/opendingux/main.h
-HEADERS += ./source/input.h
-HEADERS += ./source/memory.h
-HEADERS += ./source/opendingux/message.h
-HEADERS += ./source/mips/emit.h
-HEADERS += ./source/sound.h
-HEADERS += ./source/stats.h
-HEADERS += ./source/video.h
-HEADERS += ./source/zip.h
-HEADERS += ./source/opendingux/port.h
-HEADERS += ./source/opendingux/od-sound.h
-HEADERS += ./source/sha1.h
-HEADERS += ./source/opendingux/imageio.h
-HEADERS += ./source/unifont.h
-HEADERS += ./source/opendingux/od-input.h
-HEADERS += ./source/opendingux/settings.h
+HEADERS     := ./source/opendingux/cheats.h ./source/common.h ./source/cpu_common.h ./source/cpu.h ./source/opendingux/draw.h ./source/opendingux/main.h    \
+               ./source/input.h ./source/memory.h ./source/opendingux/message.h ./source/mips/emit.h ./source/sound.h     \
+               ./source/stats.h ./source/video.h ./source/zip.h ./source/opendingux/port.h ./source/opendingux/od-sound.h ./source/sha1.h     \
+               ./source/opendingux/imageio.h ./source/unifont.h ./source/opendingux/od-input.h ./source/opendingux/settings.h
 
 INCLUDE     := -I./source/opendingux/ -I./source -I./source/mips
-OPTIMIZE =  -O2 -mips32 -march=mips32 -mno-mips16 -fomit-frame-pointer -fno-builtin   \
+OPTIMIZE =  -O2 -mips32r2 -march=mips32r2 -mno-mips16 -fomit-frame-pointer -fno-builtin   \
             -fno-common -Wno-write-strings -Wno-sign-compare -ffast-math -ftree-vectorize \
 			-funswitch-loops -fno-strict-aliasing
 			
-DEFS        := -DGCW_ZERO -DMIPS_XBURST -DLOAD_ALL_ROM                        \
+DEFS        := -DGCW_ZERO -DRETROGAME -DMIPS_XBURST -DLOAD_ALL_ROM \
                -DGIT_VERSION=$(shell git describe --always)
 HAS_MIPS32R2 := $(shell echo | $(CC) -dM -E - |grep _MIPS_ARCH_MIPS32R2)
 ifneq ($(HAS_MIPS32R2),)
@@ -80,17 +45,19 @@ include source/Makefile.rules
 
 all: $(TARGET)
 
-opk: $(TARGET).opk
-
-$(TARGET).opk: $(TARGET)
-	$(SUM) "  OPK     $@"
-	$(CMD)rm -rf .opk_data
-	$(CMD)cp -r data .opk_data
-	$(CMD)cp regba/game_config.txt .opk_data
-	$(CMD)cp bios/gba_bios.bin .opk_data
-	$(CMD)cp $< .opk_data/regba
-	$(CMD)$(STRIP) .opk_data/regba
-	$(CMD)mksquashfs .opk_data $@ -all-root -noappend -no-exports -no-xattrs -no-progress >/dev/null
+opk: $(TARGET)
+	@mksquashfs \
+	regba/default.retrofw.desktop \
+	regba/default.gcw0.desktop \
+	regba/regba.dge \
+	regba/regba.elf \
+	regba/game_config.txt \
+	regba/regba.png \
+	regba/regba.man.txt \
+	bios/gba_bios.bin \
+	regba/regba-sp-border-silver.png \
+	regba/regba.opk \
+	-all-root -noappend -no-exports -no-xattrs
 
 # The two below declarations ensure that editing a .c file recompiles only that
 # file, but editing a .h file recompiles everything.

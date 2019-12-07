@@ -4,7 +4,7 @@
 # by pingflood; 2019
 #
 
-TARGET = regba/regba.dge
+TARGET 		:= regba/regba.dge
 
 CHAINPREFIX := /opt/mipsel-linux-uclibc
 CROSS_COMPILE := $(CHAINPREFIX)/usr/bin/mipsel-linux-
@@ -67,7 +67,9 @@ ipk: $(TARGET)
 opk: $(TARGET)
 	@mksquashfs \
 	regba/default.retrofw.desktop \
+	regba/default.gcw0.desktop \
 	regba/regba.dge \
+	regba/regba.elf \
 	regba/game_config.txt \
 	regba/regba.png \
 	regba/regba.man.txt \

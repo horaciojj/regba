@@ -1,5 +1,4 @@
 [Desktop Entry]
-
 Name=ReGBA
 Comment=Game Boy Advance Emulator
 Comment[fr]=Émulateur Game Boy Advance
@@ -7,8 +6,10 @@ Comment[es]=Emulador Game Boy Advance
 X-OD-Manual=manual-en.txt
 X-OD-Manual[es]=manual-es.txt
 X-OD-Manual[fr]=manual-fr.txt
-Icon=regba-silver
-Exec=regba %f
+Exec=regba.elf %f
+Icon=regba
+X-OD-Manual=regba.man.txt
+X-OD-Filter=.zip,.gba
 Terminal=false
 Type=Application
 StartupNotify=true
