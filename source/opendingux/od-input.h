@@ -122,12 +122,12 @@ extern int16_t GetVerticalAxisValue();
  */
 extern enum GUI_Action GetGUIAction();
 
-#if defined GCW_ZERO
-#  define LEFT_FACE_BUTTON_NAME "X"
-#  define TOP_FACE_BUTTON_NAME "Y"
-#elif defined DINGOO_A320
-#  define LEFT_FACE_BUTTON_NAME "Y"
-#  define TOP_FACE_BUTTON_NAME "X"
+#if defined(GCW_ZERO) && !defined(RETROGAME)
+	#define LEFT_FACE_BUTTON_NAME "X"
+	#define TOP_FACE_BUTTON_NAME  "Y"
+#else // if defined DINGOO_A320
+	#define LEFT_FACE_BUTTON_NAME "Y"
+	#define TOP_FACE_BUTTON_NAME  "X"
 #endif
 
 extern const enum OpenDingux_Buttons DefaultKeypadRemapping[12];
