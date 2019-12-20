@@ -67,6 +67,7 @@ ipk: $(TARGET)
 opk: $(TARGET)
 	@mksquashfs \
 	regba/default.retrofw.desktop \
+	regba/gba.retrofw.desktop \
 	regba/default.gcw0.desktop \
 	regba/regba.dge \
 	regba/regba.elf \
