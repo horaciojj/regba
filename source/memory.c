@@ -2423,15 +2423,13 @@ int32_t parse_config_line(char *current_line, char *current_variable, char *curr
 
   line_ptr_new = skip_spaces(line_ptr_new + 1);
   strcpy(current_value, line_ptr_new);
-  line_ptr_new = current_value + strlen(current_value) - 1;
-  if(*line_ptr_new == '\n')
-  {
-    line_ptr_new--;
-    *line_ptr_new = 0;
-  }
 
-  if(*line_ptr_new == '\r')
-    *line_ptr_new = 0;
+  for (line_ptr_new = current_value; *line_ptr_new != 0; line_ptr_new++) {
+      if (*line_ptr_new == '\r' || *line_ptr_new == '\n') {
+        *line_ptr_new = 0;
+        break;
+      }
+  }
 
   return 0;
 }
