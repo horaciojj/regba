@@ -290,8 +290,11 @@ int main(int argc, char *argv[])
 	}
 
 	// We'll never actually return from here.
+	u32 autoload = AutoloadSavedState;
+	u32 slot = SelectedState;
 
 	SetGameResolution();
+	if (autoload) load_state(slot);
 
 	execute_arm_translate(execute_cycles);
 	return 0;

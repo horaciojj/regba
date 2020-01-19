@@ -26,6 +26,8 @@ uint32_t PerGameShowFPS;
 uint32_t ShowFPS;
 uint32_t PerGameUserFrameskip;
 uint32_t UserFrameskip;
+uint32_t AutoloadSavedState;
+uint32_t SelectedState;
 
 void ReGBA_Trace(const char* Format, ...)
 {
@@ -197,6 +199,7 @@ bool ReGBA_GetSavedStateFilename(char* Result, const char* GamePath, uint32_t Sl
 	
 	if (strlen(main_path) + strlen(FileNameNoExt) + strlen(SlotNumberString) + 2 /* / . */ > MAX_PATH)
 		return false;
+
 	sprintf(Result, "%s/%s.s%s", main_path, FileNameNoExt, SlotNumberString);
 	return true;
 }

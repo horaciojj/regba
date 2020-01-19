@@ -72,8 +72,8 @@ void* CurrentScreen;
 	.LoadFunction = LoadHotkeyFunction, .SaveFunction = SaveHotkeyFunction
 
 // -- Data --
-
-static uint32_t SelectedState = 0;
+//Moved to port.c/port.h
+//static uint32_t SelectedState = 0;
 
 // -- Forward declarations --
 
@@ -1397,9 +1397,13 @@ static struct Menu HotkeyMenu = {
 };
 
 // -- Saved States --
+static struct MenuEntry MainMenu_AutoloadSavedState = {
+	ENTRY_OPTION("autoload_current_state", "Autoload state #1", &AutoloadSavedState),
+	.ChoiceCount = 2, .Choices = { { "Disabled", "disabled" }, { "Enabled", "enabled" } }
+};
 
 static struct MenuEntry SavedStateMenu_SelectedState = {
-	.Kind = KIND_CUSTOM, .Name = "Save slot", .PersistentName = "",
+	.Kind = KIND_OPTION, .Name = "Save slot", .PersistentName = "save_slot",
 	.Target = &SelectedState,
 	.ChoiceCount = 100,
 	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
@@ -1409,7 +1413,7 @@ static struct MenuEntry SavedStateMenu_SelectedState = {
 static struct MenuEntry SavedStateMenu_Read = {
 	.Kind = KIND_CUSTOM, .Name = "Load state",
 	.ButtonEnterFunction = ActionSavedStateRead,
-	.PersistentName = "",
+	.PersistentName = "save_slot",
 	.Target = &SelectedState,
 	.ChoiceCount = 100,
 	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
@@ -1420,7 +1424,7 @@ static struct MenuEntry SavedStateMenu_Read = {
 static struct MenuEntry SavedStateMenu_Write = {
 	.Kind = KIND_CUSTOM, .Name = "Save state",
 	.ButtonEnterFunction = ActionSavedStateWrite,
-	.PersistentName = "",
+	.PersistentName = "save_slot",
 	.Target = &SelectedState,
 	.ChoiceCount = 100,
 	.ButtonLeftFunction = SavedStateSelectionLeft, .ButtonRightFunction = SavedStateSelectionRight,
@@ -1432,12 +1436,14 @@ static struct MenuEntry SavedStateMenu_Delete = {
 	.ButtonEnterFunction = ActionSavedStateDelete
 };
 
-static struct Menu SavedStateMenu = {
+/*
+ static struct Menu SavedStateMenu = {
 	.Parent = &MainMenu, .Title = "Save states",
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
 	.Entries = { &SavedStateMenu_SelectedState, &Strut, &SavedStateMenu_Read, &SavedStateMenu_Write, &SavedStateMenu_Delete, NULL }
 };
+*/
 
 // -- Main Menu --
 
@@ -1462,9 +1468,9 @@ static struct MenuEntry MainMenu_Hotkey = {
 	ENTRY_SUBMENU("Hotkeys", &HotkeyMenu)
 };
 
-static struct MenuEntry MainMenu_SavedStates = {
+/*static struct MenuEntry MainMenu_SavedStates = {
 	ENTRY_SUBMENU("Saved states", &SavedStateMenu)
-};
+};*/
 
 static struct MenuEntry MainMenu_Debug = {
 	ENTRY_SUBMENU("Debugging", &DebugMenu)
@@ -1505,7 +1511,8 @@ struct Menu MainMenu = {
 	.AlternateVersion = &PerGameMainMenu,
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
-	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &Strut, &MainMenu_Exit, NULL },
+	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &Strut, &Strut, &Strut, \
+    &MainMenu_AutoloadSavedState, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &MainMenu_Exit, NULL },
 
 };
 

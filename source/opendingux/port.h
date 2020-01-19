@@ -80,6 +80,8 @@ extern uint32_t PerGameShowFPS;
 extern uint32_t ShowFPS;
 extern uint32_t PerGameUserFrameskip;
 extern uint32_t UserFrameskip;
+extern uint32_t AutoloadSavedState;
+extern uint32_t SelectedState;
 
 extern struct timespec TimeDifference(struct timespec Past, struct timespec Present);
 extern void GetFileNameNoExtension(char* Result, const char* Path);
