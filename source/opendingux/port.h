@@ -80,6 +80,7 @@ extern uint32_t PerGameShowFPS;
 extern uint32_t ShowFPS;
 extern uint32_t PerGameUserFrameskip;
 extern uint32_t UserFrameskip;
+extern uint32_t PerGameAutoloadSavedState;
 extern uint32_t AutoloadSavedState;
 extern uint32_t SelectedState;
 

@@ -26,6 +26,7 @@ uint32_t PerGameShowFPS;
 uint32_t ShowFPS;
 uint32_t PerGameUserFrameskip;
 uint32_t UserFrameskip;
+uint32_t PerGameAutoloadSavedState;
 uint32_t AutoloadSavedState;
 uint32_t SelectedState;
 

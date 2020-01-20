@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 	}
 
 	// We'll never actually return from here.
-	u32 autoload = AutoloadSavedState;
+	u32 autoload = ResolveSetting(AutoloadSavedState, PerGameAutoloadSavedState);
 	u32 slot = SelectedState;
 
 	SetGameResolution();

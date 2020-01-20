@@ -7,8 +7,15 @@
 #  define GIT_VERSION_STRING STRINGIFY(GIT_VERSION)
 #endif
 
+#ifdef PG2
+#define REGBA_VERSION_STRING "1.45.5 Pocket Go 2"
+#else
+#ifdef RG350
+#define REGBA_VERSION_STRING "1.45.5 RG-350"
+#else
 #define REGBA_VERSION_STRING "1.45.5"
-
+#endif
+#endif
 enum MenuEntryKind {
 	KIND_OPTION,
 	KIND_SUBMENU,

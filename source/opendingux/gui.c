@@ -959,7 +959,7 @@ static void ActionShowVersion(struct Menu** ActiveMenu, uint32_t* ActiveMenuEntr
 {
 	char Text[1024];
 #ifdef GIT_VERSION_STRING
-	sprintf(Text, "ReGBA version %s\nNebuleon/ReGBA commit %s", REGBA_VERSION_STRING, GIT_VERSION_STRING);
+	sprintf(Text, "ReGBA version %s\nNebuleon/ReGBA\nhoraciojj/regba\ncommit %s", REGBA_VERSION_STRING, GIT_VERSION_STRING);
 #else
 	sprintf(Text, "ReGBA version %s", REGBA_VERSION_STRING);
 #endif
@@ -1397,7 +1397,12 @@ static struct Menu HotkeyMenu = {
 };
 
 // -- Saved States --
-static struct MenuEntry MainMenu_AutoloadSavedState = {
+static struct MenuEntry PerGameMainMenu_AutoloadSavedState = {
+	ENTRY_OPTION("autoload_current_state", "Autoload state #1", &PerGameAutoloadSavedState),
+	.ChoiceCount = 3, .Choices = { { "No override", "" }, { "Disabled", "disabled" }, { "Enabled", "enabled" } }
+};
+
+static struct MenuEntry SettingsMenu_AutoloadSavedState = {
 	ENTRY_OPTION("autoload_current_state", "Autoload state #1", &AutoloadSavedState),
 	.ChoiceCount = 2, .Choices = { { "Disabled", "disabled" }, { "Enabled", "enabled" } }
 };
@@ -1503,7 +1508,7 @@ static struct Menu PerGameMainMenu = {
 	.Parent = &SettingsMenu, .Title = "Game Settings",
 	MENU_PER_GAME,
 	.AlternateVersion = &SettingsMenu,
-	.Entries = { &PerGameMainMenu_Display, &PerGameMainMenu_Input, &PerGameMainMenu_Hotkey, NULL }
+	.Entries = { &PerGameMainMenu_AutoloadSavedState, &Strut, &PerGameMainMenu_Display, &PerGameMainMenu_Input, &PerGameMainMenu_Hotkey, NULL }
 };
 
 struct Menu MainMenu = {
@@ -1512,7 +1517,7 @@ struct Menu MainMenu = {
 	.InitFunction = SavedStateMenuInit, .EndFunction = SavedStateMenuEnd,
 	.DisplayDataFunction = SavedStateMenuDisplayData,
 	.Entries = { &SavedStateMenu_Read, &SavedStateMenu_Write, &Strut, &Strut, &Strut, &Strut, \
-    &MainMenu_AutoloadSavedState, &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &MainMenu_Exit, NULL },
+    &Strut, &MainMenu_Settings, &Strut, &MainMenu_Reset, &MainMenu_Exit, NULL },
 
 };
 
@@ -1521,7 +1526,7 @@ struct Menu MainMenu = {
 static struct Menu SettingsMenu = {
 	.Parent = &MainMenu, .Title = "Settings",
 	.AlternateVersion = &PerGameMainMenu,
-	.Entries = { &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &PerGame_Settings, &Strut, &MainMenu_Debug, NULL }
+	.Entries = { &SettingsMenu_AutoloadSavedState, &Strut, &MainMenu_Display, &MainMenu_Input, &MainMenu_Hotkey, &Strut, &PerGame_Settings, &Strut, &MainMenu_Debug, NULL }
 };
 
 /* Do not make this the active menu */
