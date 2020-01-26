@@ -38,7 +38,9 @@ static void Menu_SaveIterateRecurse(FILE_TAG_TYPE fd, struct Menu *menu)
 	while ((cur = menu->Entries[i++])) {
 		switch (cur->Kind) {
 		case KIND_SUBMENU:
-			Menu_SaveIterateRecurse(fd, cur->Target);
+			//Without this if, we end up saving PerGameSettings in the
+			//main .cfg		
+			if (strcmp(cur->Name,"Game Settings") != 0) Menu_SaveIterateRecurse(fd, cur->Target);			
 			break;
 		case KIND_OPTION:
 			Menu_SaveOption(fd, cur);
@@ -278,6 +280,7 @@ void ReGBA_LoadSettings(char *cfg_name, bool PerGame)
 			}
 
 			struct MenuEntry* entry = Menu_FindByPersistentName(PerGame ? MainMenu.AlternateVersion : &MainMenu, opt);
+
 			if (entry == NULL)
 			{
 				ReGBA_Trace("W: Option '%s' not found; ignored", opt);
