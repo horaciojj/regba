@@ -67,6 +67,15 @@ uint32_t OpenDinguxKeys[OPENDINGUX_BUTTON_COUNT] = {
 	SDLK_END,       // GCW: Quick flick of Power
 #endif
 #endif
+#ifdef RG350
+	SDLK_PAGEUP,
+	SDLK_PAGEDOWN,
+#else
+#ifdef PG2	
+	SDLK_RSHIFT,
+	SDLK_RALT
+#endif
+#endif
 };
 
 // These must be OpenDingux buttons at the bit suitable for the ReGBA_Buttons

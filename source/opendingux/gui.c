@@ -423,6 +423,11 @@ static char* OpenDinguxButtonText[OPENDINGUX_BUTTON_COUNT] = {
 	"Analog Up",
 	"Analog Left",
 	"Analog Right",
+	"Menu",
+#if defined(PG2) || defined(RG350)
+	"L2",
+	"R2",
+#endif	
 };
 
 /*
@@ -590,6 +595,11 @@ static char OpenDinguxButtonSave[OPENDINGUX_BUTTON_COUNT] = {
 	'u',
 	'l',
 	'r', // (end)
+	'm',
+#if defined(PG2) || defined(RG350)	
+	'I', //L2 
+	'D', //R2
+#endif	
 };
 
 static void LoadMappingFunction(struct MenuEntry* ActiveMenuEntry, char* Value)

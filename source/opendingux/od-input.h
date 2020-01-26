@@ -20,7 +20,11 @@
 #ifndef __OD_INPUT_H__
 #define __OD_INPUT_H__
 
-#define OPENDINGUX_BUTTON_COUNT 17
+#if defined(PG2) || defined(RG350)
+	#define OPENDINGUX_BUTTON_COUNT 19
+#else
+	#define OPENDINGUX_BUTTON_COUNT 17
+#endif
 
 // These must be in the order defined in OpenDinguxKeys in od-input.c.
 enum OpenDingux_Buttons {
@@ -41,6 +45,10 @@ enum OpenDingux_Buttons {
 	OPENDINGUX_ANALOG_LEFT       = 0x04000,
 	OPENDINGUX_ANALOG_RIGHT      = 0x08000,
 	OPENDINGUX_BUTTON_MENU       = 0x10000,
+#if defined PG2 || defined RG350
+	OPENDINGUX_BUTTON_L2         = 0x20000,
+	OPENDINGUX_BUTTON_R2         = 0x40000,	
+#endif	
 };
 
 enum GUI_Action {
@@ -122,7 +130,7 @@ extern int16_t GetVerticalAxisValue();
  */
 extern enum GUI_Action GetGUIAction();
 
-#if defined(GCW_ZERO) && !defined(RETROGAME)
+#if defined(GCW_ZERO) && !defined(RETROGAME) && !defined(PG2) && !defined(RG350)
 	#define LEFT_FACE_BUTTON_NAME "X"
 	#define TOP_FACE_BUTTON_NAME  "Y"
 #else // if defined DINGOO_A320
