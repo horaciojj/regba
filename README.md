@@ -1,4 +1,10 @@
-TempGBA version 1.45, 2013-09-14
+# Notice 2020-01-28
+This version is based on pingflood release for RetroFw.
+
+Basically, I added support for RG-350 and PocketGo 2 devices, and added a
+few things that I missed.
+
+# TempGBA version 1.45, 2013-09-14
 
 A Game Boy Advance emulator for the Supercard DSTWO.
 
